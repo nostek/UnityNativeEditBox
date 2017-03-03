@@ -531,6 +531,44 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
     }
 }
 
+-(void)selectRangeFrom:(int)from rangeTo:(int)to
+{
+    if([editView isKindOfClass:[UITextField class]])
+    {
+        UITextField *field = (UITextField *)editView;
+        
+        UITextPosition *pfrom = [field positionFromPosition:[field beginningOfDocument] offset:from];
+        UITextPosition *pto = [field positionFromPosition:[field beginningOfDocument] offset:to];
+        
+        if(pfrom == nil || pto == nil)
+            return;
+        
+        UITextRange *prange = [field textRangeFromPosition:pfrom toPosition:pto];
+        
+        if(prange == nil)
+            return;
+        
+        [field setSelectedTextRange:prange];
+    }
+    if([editView isKindOfClass:[UITextView class]])
+    {
+        UITextView *text = (UITextView *)editView;
+        
+        UITextPosition *pfrom = [text positionFromPosition:[text beginningOfDocument] offset:from];
+        UITextPosition *pto = [text positionFromPosition:[text beginningOfDocument] offset:to];
+        
+        if(pfrom == nil || pto == nil)
+            return;
+        
+        UITextRange *prange = [text textRangeFromPosition:pfrom toPosition:pto];
+        
+        if(prange == nil)
+            return;
+        
+        [text setSelectedTextRange:prange];
+    }
+}
+
 - (CGFloat)getScale:(UIView *)view
 {
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
@@ -617,6 +655,7 @@ extern "C" {
     void _CNativeEditBox_SetCharacterLimit(void *instance, int characterLimit);
     void _CNativeEditBox_SetText(void *instance, const char *newText);
     void _CNativeEditBox_ShowClearButton(void *instance, BOOL show);
+    void _CNativeEditBox_SelectRange(void *instance, int from, int to);
 }
 
 void *_CNativeEditBox_Init(const char *gameObjectName, BOOL multiline)
@@ -706,4 +745,10 @@ void _CNativeEditBox_ShowClearButton(void *instance, BOOL show)
 {
     CEditBoxPlugin *plugin = (__bridge CEditBoxPlugin *)instance;
     [plugin showClearButton:show];
+}
+
+void _CNativeEditBox_SelectRange(void *instance, int from, int to)
+{
+    CEditBoxPlugin *plugin = (__bridge CEditBoxPlugin *)instance;
+    [plugin selectRangeFrom:from rangeTo:to];
 }

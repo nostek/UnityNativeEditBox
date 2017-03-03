@@ -25,6 +25,12 @@ public partial class NativeEditBox : IPointerClickHandler
 			editBox.Call("SetText", text);
 	}
 
+	public void SelectRange(int from, int to)
+	{
+		if (editBox != null)
+			editBox.Call("SelectRange", from, to);
+	}
+
 	void SetPlacement(int left, int top, int right, int bottom)
 	{
 		if (editBox == null)

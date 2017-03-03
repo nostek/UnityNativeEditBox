@@ -524,6 +524,24 @@ public class NativeEditBox {
         });
     }
 
+    @SuppressWarnings("unused")
+    public void SelectRange(int from, int to)
+    {
+    	final int ifrom = from;
+    	final int ito = to;
+
+        final Activity activity = UnityPlayer.currentActivity;
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mEditBox == null)
+                    return;
+
+                mEditBox.setSelection(ifrom, ito);
+            }
+        });
+    }
+
     ///
 
     private void updateInputValues()

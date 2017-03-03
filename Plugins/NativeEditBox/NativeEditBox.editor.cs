@@ -18,6 +18,12 @@ public partial class NativeEditBox
 		inputField.text = text;
 	}
 
+	public void SelectRange(int from, int to)
+	{
+		inputField.selectionAnchorPosition = from;
+		inputField.selectionFocusPosition = to;
+	}
+
 	public void SetPlacement(int left, int top, int right, int bottom)
 	{
 		//Do nothing

@@ -52,6 +52,9 @@ public partial class NativeEditBox : IPointerClickHandler
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_ShowClearButton(IntPtr instance, bool value);
 
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_SelectRange(IntPtr instance, int from, int to);
+
 	IntPtr editBox;
 
 #region Public Methods
@@ -67,6 +70,12 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		if (editBox != IntPtr.Zero)
 			_CNativeEditBox_SetText(editBox, text);
+	}
+
+	public void SelectRange(int from, int to)
+	{
+		if (editBox != IntPtr.Zero)
+			_CNativeEditBox_SelectRange(editBox, from, to);
 	}
 
 	public void SetPlacement(int left, int top, int right, int bottom)
