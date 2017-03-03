@@ -109,12 +109,16 @@ public partial class NativeEditBox : MonoBehaviour
 		if (coUpdatePlacement != null)
 			return;
 
-		coUpdatePlacement = StartCoroutine(CoUpdatePlacement());
+		if (this.gameObject.activeInHierarchy)
+			coUpdatePlacement = StartCoroutine(CoUpdatePlacement());
 	}
 
 	IEnumerator CoUpdatePlacement()
 	{
 		yield return new WaitForEndOfFrame();
+
+		if (this == null)
+			yield break;
 
 		UpdatePlacementNow();
 
