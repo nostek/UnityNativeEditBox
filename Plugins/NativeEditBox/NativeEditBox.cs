@@ -26,13 +26,13 @@ public partial class NativeEditBox : MonoBehaviour
 	public event OnSubmitHandler OnSubmit;
 
 	#pragma warning disable 0414
+
 	[SerializeField]
 	ReturnButtonType returnButtonType = ReturnButtonType.Default;
-	#pragma warning restore 0414
 
-	#pragma warning disable 0414
 	[SerializeField]
 	bool switchBetweenNativeAndUnity = false;
+
 	#pragma warning restore 0414
 
 	InputField inputField = null;
