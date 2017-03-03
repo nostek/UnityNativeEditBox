@@ -21,13 +21,20 @@ public partial class NativeEditBox : MonoBehaviour
 		Done,
 	}
 
+	public delegate void OnTextChangedHandler(string text);
+
 	public delegate void OnSubmitHandler(string text);
 
 	public delegate void OnEventHandler();
 
+	public event OnTextChangedHandler OnTextChanged;
+
 	public event OnSubmitHandler OnSubmit;
 
 	public event OnEventHandler OnGotFocus;
+	public event OnEventHandler OnDidEnd;
+	public event OnEventHandler OnTapOutside;
+
 	#pragma warning disable 0414
 
 	[SerializeField]

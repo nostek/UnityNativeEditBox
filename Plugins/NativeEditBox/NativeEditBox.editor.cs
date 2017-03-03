@@ -56,6 +56,13 @@ public partial class NativeEditBox
 	void AwakeNative()
 	{
 		inputField.onEndEdit.AddListener(OnEndEdit);
+		inputField.onValueChanged.AddListener(OnValueChanged);
+	}
+
+	void OnValueChanged(string text)
+	{
+		if (OnTextChanged != null)
+			OnTextChanged(text);
 	}
 
 	void OnEndEdit(string text)
@@ -65,6 +72,13 @@ public partial class NativeEditBox
 			if (OnSubmit != null)
 				OnSubmit(inputField.text);
 		}
+
+		if (OnDidEnd != null)
+			OnDidEnd();
+
+		if (OnTapOutside != null)
+			OnDidEnd();
+	}
 
 	#region BAD FOCUS CHECK
 

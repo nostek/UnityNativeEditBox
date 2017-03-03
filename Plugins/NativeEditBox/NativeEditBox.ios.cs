@@ -215,12 +215,18 @@ public partial class NativeEditBox : IPointerClickHandler
 	void iOS_TextChanged(string text)
 	{
 		inputField.text = text;
+
+		if (OnTextChanged != null)
+			OnTextChanged(text);
 	}
 
 	void iOS_TapOutside(string nothing)
 	{
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
+
+		if (OnTapOutside != null)
+			OnTapOutside();
 	}
 
 	void iOS_DidEnd(string text)
@@ -229,6 +235,9 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
+
+		if (OnDidEnd != null)
+			OnDidEnd();
 	}
 
 	void iOS_SubmitPressed(string text)

@@ -181,12 +181,18 @@ public partial class NativeEditBox : IPointerClickHandler
 	void Android_TextChanged(string text)
 	{
 		inputField.text = text;
+
+		if (OnTextChanged != null)
+			OnTextChanged(text);
 	}
 
 	void Android_TapOutside(string nothing)
 	{
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
+
+		if (OnTapOutside != null)
+			OnTapOutside();
 	}
 
 	void Android_DidEnd(string text)
@@ -195,6 +201,9 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
+
+		if (OnDidEnd != null)
+			OnDidEnd();
 	}
 
 	void Android_SubmitPressed(string text)
