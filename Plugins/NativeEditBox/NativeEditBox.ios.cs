@@ -49,6 +49,9 @@ public partial class NativeEditBox : IPointerClickHandler
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_SetText(IntPtr instance, string newText);
 
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_ShowClearButton(IntPtr instance, bool value);
+
 	IntPtr editBox;
 
 #region Public Methods
@@ -186,6 +189,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		_CNativeEditBox_SetReturnButtonType(editBox, (int)returnButtonType);
 		_CNativeEditBox_SetCharacterLimit(editBox, inputField.characterLimit);
 		_CNativeEditBox_SetText(editBox, inputField.text);
+		_CNativeEditBox_ShowClearButton(editBox, showClearButton);
 	}
 
 #region CALLBACKS

@@ -30,6 +30,10 @@ public partial class NativeEditBox : MonoBehaviour
 	[SerializeField]
 	ReturnButtonType returnButtonType = ReturnButtonType.Default;
 
+	[Tooltip("iOS ONLY")]
+	[SerializeField]
+	bool showClearButton = true;
+
 	[SerializeField]
 	bool switchBetweenNativeAndUnity = false;
 

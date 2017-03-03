@@ -516,6 +516,16 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
     }
 }
 
+-(void)showClearButton:(BOOL)show
+{
+    if([editView isKindOfClass:[UITextField class]])
+    {
+        UITextField *field = (UITextField *)editView;
+        
+        field.clearButtonMode = (show) ? UITextFieldViewModeWhileEditing : UITextFieldViewModeNever;
+    }
+}
+
 - (CGFloat)getScale:(UIView *)view
 {
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0)
@@ -601,6 +611,7 @@ extern "C" {
     void _CNativeEditBox_SetReturnButtonType(void *instance, int returnButtonType);
     void _CNativeEditBox_SetCharacterLimit(void *instance, int characterLimit);
     void _CNativeEditBox_SetText(void *instance, const char *newText);
+    void _CNativeEditBox_ShowClearButton(void *instance, BOOL show);
 }
 
 void *_CNativeEditBox_Init(const char *gameObjectName, BOOL multiline)
@@ -684,4 +695,10 @@ void _CNativeEditBox_SetText(void *instance, const char *newText)
 {
     CEditBoxPlugin *plugin = (__bridge CEditBoxPlugin *)instance;
     [plugin setText:[NSString stringWithUTF8String:newText]];
+}
+
+void _CNativeEditBox_ShowClearButton(void *instance, BOOL show)
+{
+    CEditBoxPlugin *plugin = (__bridge CEditBoxPlugin *)instance;
+    [plugin showClearButton:show];
 }
