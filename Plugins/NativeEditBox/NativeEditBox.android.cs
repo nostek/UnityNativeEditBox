@@ -158,6 +158,24 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		if (OnGotFocus != null)
 			OnGotFocus();
+
+		if (selectAllOnFocus)
+		{
+			StartCoroutine(CoSelectAll());
+		}
+	}
+
+	IEnumerator CoSelectAll()
+	{
+		//Looks bad, but works 98% of the times..... Sad.
+		SelectRange(0, inputField.text.Length);		
+		SelectRange(0, inputField.text.Length);		
+		yield return 0;
+		SelectRange(0, inputField.text.Length);		
+		SelectRange(0, inputField.text.Length);		
+		yield return 0;
+		SelectRange(0, inputField.text.Length);		
+		SelectRange(0, inputField.text.Length);		
 	}
 
 	void Android_TextChanged(string text)

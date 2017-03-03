@@ -82,6 +82,9 @@ public partial class NativeEditBox
 			{
 				if (OnGotFocus != null)
 					OnGotFocus();
+
+				if (selectAllOnFocus)
+					SelectRange(0, inputField.text.Length);
 			}
 		}
 	}

@@ -207,6 +207,9 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		if (OnGotFocus != null)
 			OnGotFocus();
+
+		if (selectAllOnFocus)
+			SelectRange(0, inputField.text.Length);
 	}
 
 	void iOS_TextChanged(string text)
