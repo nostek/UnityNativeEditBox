@@ -194,6 +194,12 @@ public partial class NativeEditBox : IPointerClickHandler
 
 #region CALLBACKS
 
+	void iOS_GotFocus(string nothing)
+	{
+		if (OnGotFocus != null)
+			OnGotFocus();
+	}
+
 	void iOS_TextChanged(string text)
 	{
 		inputField.text = text;

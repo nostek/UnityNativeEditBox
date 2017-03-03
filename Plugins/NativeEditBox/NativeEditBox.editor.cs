@@ -59,7 +59,28 @@ public partial class NativeEditBox
 			if (OnSubmit != null)
 				OnSubmit(inputField.text);
 		}
+
+	#region BAD FOCUS CHECK
+
+	bool isFocused = false;
+
+	void Update()
+	{
+		bool focus = inputField.isFocused;
+
+		if (focus != isFocused)
+		{
+			isFocused = focus;
+
+			if (focus)
+			{
+				if (OnGotFocus != null)
+					OnGotFocus();
+			}
+		}
 	}
+
+	#endregion
 }
 
 #endif

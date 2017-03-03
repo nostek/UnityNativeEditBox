@@ -148,6 +148,12 @@ public partial class NativeEditBox : IPointerClickHandler
 		editBox.Call("SetText", inputField.text);
 	}
 
+	void Android_GotFocus(string nothing)
+	{
+		if (OnGotFocus != null)
+			OnGotFocus();
+	}
+
 	void Android_TextChanged(string text)
 	{
 		inputField.text = text;

@@ -28,6 +28,7 @@ public class NativeEditBox {
     private final String METHOD_TAP_OUTSIDE = "Android_TapOutside";
     private final String METHOD_DID_END = "Android_DidEnd";
     private final String METHOD_SUBMIT_PRESSED = "Android_SubmitPressed";
+    private final String METHOD_GOT_FOCUS = "Android_GotFocus";
 
     private final String GLOBAL_LISTENER_NAME = "NativeEditBoxGlobalListener_1000";
     private final String GLOBAL_METHOD_KEYBOARD_CHANGE = "FromNative_KeyboardChange";
@@ -152,6 +153,8 @@ public class NativeEditBox {
                         }else
                         {
                             mLayout.setClickable(true);
+
+                            eb.sendToUnity(METHOD_GOT_FOCUS, "");
                         }
                     }
                 });

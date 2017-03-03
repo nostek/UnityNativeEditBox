@@ -2,6 +2,7 @@
 #define METHOD_TAP_OUTSIDE @"iOS_TapOutside"
 #define METHOD_DID_END @"iOS_DidEnd"
 #define METHOD_SUBMIT_PRESSED @"iOS_SubmitPressed"
+#define METHOD_GOT_FOCUS @"iOS_GotFocus"
 
 #define GLOBAL_LISTENER_NAME @"NativeEditBoxGlobalListener_1000"
 #define GLOBAL_METHOD_KEYBOARD_CHANGE @"FromNative_KeyboardChange"
@@ -140,6 +141,8 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
 {
     UIView *view = UnityGetGLViewController().view;
     [view addGestureRecognizer:tapper];
+    
+    [self sendMessageToUnity:METHOD_GOT_FOCUS parameter:@""];
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
@@ -186,6 +189,8 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
 {
     UIView *view = UnityGetGLViewController().view;
     [view addGestureRecognizer:tapper];
+    
+    [self sendMessageToUnity:METHOD_GOT_FOCUS parameter:@""];
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
