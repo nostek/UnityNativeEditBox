@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.os.Build;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
@@ -249,7 +248,7 @@ public class NativeEditBox {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 Gravity.NO_GRAVITY
-            );
+        );
         params.leftMargin = left;
         params.topMargin = top;
         params.width = right - left;
@@ -529,8 +528,8 @@ public class NativeEditBox {
     @SuppressWarnings("unused")
     public void SelectRange(int from, int to)
     {
-    	final int ifrom = from;
-    	final int ito = to;
+        final int ifrom = from;
+        final int ito = to;
 
         final Activity activity = UnityPlayer.currentActivity;
         activity.runOnUiThread(new Runnable() {
