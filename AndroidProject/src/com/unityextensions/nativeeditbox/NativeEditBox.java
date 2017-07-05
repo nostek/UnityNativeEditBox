@@ -22,6 +22,8 @@ import android.widget.TextView;
 
 import com.unity3d.player.UnityPlayer;
 
+import java.util.Locale;
+
 @SuppressWarnings("unused")
 public class NativeEditBox {
     private final String METHOD_TEXT_CHANGED = "Android_TextChanged";
@@ -207,7 +209,7 @@ public class NativeEditBox {
                     if(kbHeight > 2)
                     {
                         //Showing
-                        UnityPlayer.UnitySendMessage(GLOBAL_LISTENER_NAME, GLOBAL_METHOD_KEYBOARD_CHANGE, String.format("%d|%d|%d|%d", 0, screen.x, r.bottom, kbHeight));
+                        UnityPlayer.UnitySendMessage(GLOBAL_LISTENER_NAME, GLOBAL_METHOD_KEYBOARD_CHANGE, String.format(Locale.ENGLISH, "%d|%d|%d|%d", 0, screen.x, r.bottom, kbHeight));
                     }else{
                         //Not showing
                         UnityPlayer.UnitySendMessage(GLOBAL_LISTENER_NAME, GLOBAL_METHOD_KEYBOARD_CHANGE, "");
