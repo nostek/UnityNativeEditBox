@@ -77,10 +77,10 @@ public class NativeEditBox {
         EmailAddress,
     }
 
-    private String gameObjectName;
+    private static ViewTreeObserver.OnGlobalLayoutListener sGlobalListener = null;
+    private static FrameLayout sLayout = null;
 
-    private static FrameLayout mLayout = null;
-    private static ViewTreeObserver.OnGlobalLayoutListener globalListener = null;
+    private String mGameObjectName;
     private EditText mEditBox = null;
 
     private boolean currentMultiline = false;
@@ -90,7 +90,7 @@ public class NativeEditBox {
     @SuppressWarnings("unused")
     public void Init(final String gameObjectName, final boolean multiline)
     {
-        this.gameObjectName = gameObjectName;
+        this.mGameObjectName = gameObjectName;
         this.currentMultiline = multiline;
 
         final Activity activity = UnityPlayer.currentActivity;
@@ -115,7 +115,7 @@ public class NativeEditBox {
                 mEditBox.setFocusable(true);
                 mEditBox.setFocusableInTouchMode(true);
 
-                if(mLayout == null)
+                if(sLayout == null)
                 {
                     mLayout = new FrameLayout(activity);
                     mLayout.setFocusable(true);
@@ -130,7 +130,7 @@ public class NativeEditBox {
                     );
                 }
 
-                mLayout.addView(
+                sLayout.addView(
                         mEditBox,
                         new FrameLayout.LayoutParams(
                                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -145,7 +145,7 @@ public class NativeEditBox {
                         if (!hasFocus) {
                             String txt = eb.getText();
 
-                            mLayout.setClickable(false);
+                            sLayout.setClickable(false);
 
                             eb.showKeyboard(false);
 
@@ -153,7 +153,7 @@ public class NativeEditBox {
                             eb.sendToUnity(METHOD_TAP_OUTSIDE, "");
                         }else
                         {
-                            mLayout.setClickable(true);
+                            sLayout.setClickable(true);
 
                             eb.sendToUnity(METHOD_GOT_FOCUS, "");
                         }
@@ -191,9 +191,9 @@ public class NativeEditBox {
             }
         });
 
-        if(globalListener == null)
+        if(sGlobalListener == null)
         {
-            globalListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+            sGlobalListener = new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
                     Rect r = new Rect();
@@ -215,14 +215,14 @@ public class NativeEditBox {
                     }
                 }
             };
-            activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(globalListener);
+            activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(sGlobalListener);
         }
     }
 
     @SuppressWarnings("unused")
     public void Destroy()
     {
-        gameObjectName = null;
+        mGameObjectName = null;
 
         final Activity activity = UnityPlayer.currentActivity;
         activity.runOnUiThread(new Runnable() {
@@ -233,7 +233,7 @@ public class NativeEditBox {
 
                 showKeyboard(false);
 
-                mLayout.removeView(mEditBox);
+                sLayout.removeView(mEditBox);
 
                 mEditBox = null;
             }
@@ -625,10 +625,10 @@ public class NativeEditBox {
 
     private void sendToUnity(String method, String param)
     {
-        if(gameObjectName == null)
+        if(mGameObjectName == null)
             return;
 
-        UnityPlayer.UnitySendMessage(gameObjectName, method, param);
+        UnityPlayer.UnitySendMessage(mGameObjectName, method, param);
     }
 
     private String getText()
@@ -653,8 +653,8 @@ public class NativeEditBox {
         {
             if(mEditBox.hasFocus())
                 mEditBox.clearFocus();
-            if(mLayout.hasFocus())
-                mLayout.clearFocus();
+            if(sLayout.hasFocus())
+                sLayout.clearFocus();
 
             imm.hideSoftInputFromWindow(mEditBox.getWindowToken(), 0);
         }
