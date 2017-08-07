@@ -11,14 +11,12 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.unity3d.player.UnityPlayer;
@@ -81,7 +79,6 @@ public class NativeEditBox {
 
     private static ViewTreeObserver.OnGlobalLayoutListener sGlobalListener = null;
     private static FrameLayout sLayout = null;
-    private static PopupWindow sPopup = null;
 
     private String mGameObjectName;
     private EditText mEditBox = null;
@@ -120,29 +117,17 @@ public class NativeEditBox {
 
                 if(sLayout == null)
                 {
-                    Display display = activity.getWindowManager().getDefaultDisplay();
-                    Point screen = new Point();
-                    display.getSize(screen);
-
-                    sLayout = new FrameLayout(activity);
-                    sLayout.setFocusable(true);
-                    sLayout.setFocusableInTouchMode(true);
-
-                    sPopup = new PopupWindow(sLayout, screen.x, screen.y, true);
-
-                    sPopup.setTouchInterceptor( new View.OnTouchListener(){
-                        @Override
-                        public boolean onTouch(View v, MotionEvent event) {
-                            //Bubble through the popup.
-                            activity.dispatchTouchEvent(event);
-                            return false;
-                        }
-                    });
-
-                    int visibilityFlags = activity.getWindow().getAttributes().flags;
-                    sPopup.getContentView().setSystemUiVisibility(visibilityFlags);
-
-                    sPopup.showAtLocation(activity.getWindow().getDecorView().getRootView(), Gravity.NO_GRAVITY, 0, 0);
+                    mLayout = new FrameLayout(activity);
+                    mLayout.setFocusable(true);
+                    mLayout.setFocusableInTouchMode(true);
+                    activity.addContentView(
+                            mLayout,
+                            new FrameLayout.LayoutParams(
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    FrameLayout.LayoutParams.MATCH_PARENT,
+                                    Gravity.NO_GRAVITY
+                            )
+                    );
                 }
 
                 sLayout.addView(
@@ -251,14 +236,6 @@ public class NativeEditBox {
                 sLayout.removeView(mEditBox);
 
                 mEditBox = null;
-
-                if(sLayout.getChildCount() == 0)
-                {
-                    sPopup.dismiss();
-
-                    sPopup = null;
-                    sLayout = null;
-                }
             }
         });
     }
@@ -678,8 +655,6 @@ public class NativeEditBox {
                 mEditBox.clearFocus();
             if(sLayout.hasFocus())
                 sLayout.clearFocus();
-            if(sPopup.getContentView().hasFocus())
-                sPopup.getContentView().clearFocus();
 
             imm.hideSoftInputFromWindow(mEditBox.getWindowToken(), 0);
         }
