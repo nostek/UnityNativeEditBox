@@ -17,6 +17,9 @@ Works with Unitys InputField.
 ## Known issues
 - The NativeEditBox is always on top of Unity, nothing will be rendered over it.
 
+- "For Unity 5.6 or newer, you also need to modify android:name from com.unity3d.player.UnityPlayerActivity to com.unityextensions.nativeeditbox.CUnityPlayerActivity. This custom activity implementation will adjust Unity's SurfaceView z order."
+(Thanks @KojiNakamaru)
+
 ## Tips
 - Use DestroyNative() to destroy the native version and show Unitys InputField instead.
 
