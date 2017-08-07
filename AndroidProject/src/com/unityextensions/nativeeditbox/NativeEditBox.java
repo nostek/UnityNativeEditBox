@@ -117,11 +117,11 @@ public class NativeEditBox {
 
                 if(sLayout == null)
                 {
-                    mLayout = new FrameLayout(activity);
-                    mLayout.setFocusable(true);
-                    mLayout.setFocusableInTouchMode(true);
+                    sLayout = new FrameLayout(activity);
+                    sLayout.setFocusable(true);
+                    sLayout.setFocusableInTouchMode(true);
                     activity.addContentView(
-                            mLayout,
+                            sLayout,
                             new FrameLayout.LayoutParams(
                                     FrameLayout.LayoutParams.MATCH_PARENT,
                                     FrameLayout.LayoutParams.MATCH_PARENT,
