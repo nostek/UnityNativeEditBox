@@ -33,4 +33,4 @@ https://github.com/indeego/UnityNativeEdit
 
 
 
-Tested with Unity 5.5.0, 5.6.0, 5.6.1
+Tested with Unity 5.5.0, 5.6.0, 5.6.1, 5.6.2p4
