@@ -9,16 +9,17 @@ public class NativeEditBoxGlobalListener : MonoBehaviour
 	{
 		if (string.IsNullOrEmpty(stringRect))
 		{
-			keyboard = new Rect(0, 0, 0, 0);
+			keyboard = new Rect(0f, 0f, 0f, 0f);
 		}
 		else
 		{
+			stringRect = stringRect.Replace(',', '.');
 			string[] split = stringRect.Split('|');
 			keyboard = new Rect(
-				float.Parse(split[0]),
-				float.Parse(split[1]),
-				float.Parse(split[2]),
-				float.Parse(split[3])
+				float.Parse(split[0], System.Globalization.CultureInfo.InvariantCulture),
+				float.Parse(split[1], System.Globalization.CultureInfo.InvariantCulture),
+				float.Parse(split[2], System.Globalization.CultureInfo.InvariantCulture),
+				float.Parse(split[3], System.Globalization.CultureInfo.InvariantCulture)
 			);
 		}
 	}
