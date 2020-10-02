@@ -104,6 +104,7 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
     textField.tag = 0;
     textField.delegate = self;
     textField.clearButtonMode = UITextFieldViewModeWhileEditing;
+    textField.backgroundColor = [UIColor clearColor];
     
     [textField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
     
@@ -118,6 +119,7 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
     textView.editable = true;
     textView.scrollEnabled = true;
     textView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    textView.backgroundColor = [UIColor clearColor];
     
     editView = textView;
 }
