@@ -150,6 +150,33 @@ public partial class NativeEditBox : IPointerClickHandler
 		TMP_Text text = inputField.textComponent;
 		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
+		//ugly, fix enum
+		TextAnchor alignment = text.verticalAlignment switch
+		{
+			VerticalAlignmentOptions.Top => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorUpperLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorUpperCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorUpperRight,
+				_ => TextAnchor.TextAnchorUpperLeft
+			},
+			VerticalAlignmentOptions.Middle => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorMiddleLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorMiddleCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorMiddleRight,
+				_ => TextAnchor.TextAnchorMiddleLeft
+			},
+			VerticalAlignmentOptions.Bottom => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorLowerLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorLowerCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorLowerRight,
+				_ => TextAnchor.TextAnchorLowerLeft
+			},
+			_ => TextAnchor.TextAnchorUpperLeft
+		};
+
 		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox");
 		editBox.Call("Init", name, inputField.lineType != TMP_InputField.LineType.SingleLine);
 
@@ -158,7 +185,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		editBox.Call("SetFontSize", Mathf.RoundToInt(text.fontSize * text.pixelsPerUnit));
 		editBox.Call("SetFontColor", text.color.r, text.color.g, text.color.b, text.color.a);
 		editBox.Call("SetPlaceholder", placeholder.text, placeholder.color.r, placeholder.color.g, placeholder.color.b, placeholder.color.a);
-		editBox.Call("SetTextAlignment", (int)text.alignment);
+		editBox.Call("SetTextAlignment", (int)alignment);
 		editBox.Call("SetInputType", (int)inputField.inputType);
 		editBox.Call("SetKeyboardType", (int)inputField.keyboardType);
 		editBox.Call("SetReturnButtonType", (int)returnButtonType);
