@@ -146,13 +146,7 @@ public partial class NativeEditBox : MonoBehaviour
 
 	#region Public Methods
 
-	public static Rect KeyboardArea
-	{
-		get
-		{
-			return NativeEditBoxGlobalListener.KeyboardArea;
-		}
-	}
+	public static Rect KeyboardArea => NativeEditBoxGlobalListener.KeyboardArea;
 
 	#endregion
 }

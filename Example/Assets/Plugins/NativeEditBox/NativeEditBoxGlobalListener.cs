@@ -25,13 +25,7 @@ public class NativeEditBoxGlobalListener : MonoBehaviour
 
 	#region Public Methods
 
-	public static Rect KeyboardArea
-	{
-		get
-		{
-			return keyboard;
-		}
-	}
+	public static Rect KeyboardArea => keyboard;
 
 	#endregion
 }
