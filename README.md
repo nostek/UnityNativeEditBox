@@ -1,24 +1,21 @@
 # UnityNativeEditBox
 
 A native implementation of UITextField on iOS and EditText on Android for Unity.
-Works with Unitys InputField.
+Works with TextMesh Pro.
 
 ## Installation
 1. Copy the Plugins folder to your Assets folder.
-2. Add NativeEditBox to your InputField component.
+2. Add NativeEditBox to your TMP InputField component.
 3. Done!
 
 ## Usage
-- Use the delegates on NativeEditBox for user information.
+- Use the delegates on NativeEditBox for events.
 
 - Use the static rect KeyboardArea on NativeEditBox for information about the keyboard.
  If the rect is zero, then the keyboard is hidden.
 
 ## Known issues
 - The NativeEditBox is always on top of Unity, nothing will be rendered over it.
-
-- "For Unity 5.6 or newer, you also need to modify android:name from com.unity3d.player.UnityPlayerActivity to com.unityextensions.nativeeditbox.CUnityPlayerActivity. This custom activity implementation will adjust Unity's SurfaceView z order."
-(Thanks @KojiNakamaru)
 
 ## Tips
 - Use DestroyNative() to destroy the native version and show Unitys InputField instead.
@@ -33,4 +30,4 @@ https://github.com/indeego/UnityNativeEdit
 
 
 
-Tested with Unity 5.5.0, 5.6.0, 5.6.1, 5.6.2p4
+Tested with Unity 2022.3.26f
