@@ -25,12 +25,6 @@ import java.util.Locale;
 
 @SuppressWarnings("unused")
 public class NativeEditBox {
-    private final String METHOD_TEXT_CHANGED = "Android_TextChanged";
-    private final String METHOD_TAP_OUTSIDE = "Android_TapOutside";
-    private final String METHOD_DID_END = "Android_DidEnd";
-    private final String METHOD_SUBMIT_PRESSED = "Android_SubmitPressed";
-    private final String METHOD_GOT_FOCUS = "Android_GotFocus";
-
     private final String GLOBAL_LISTENER_NAME = "NativeEditBoxGlobalListener_1000";
     private final String GLOBAL_METHOD_KEYBOARD_CHANGE = "FromNative_KeyboardChange";
 
@@ -80,17 +74,22 @@ public class NativeEditBox {
     private static ViewTreeObserver.OnGlobalLayoutListener sGlobalListener = null;
     private static FrameLayout sLayout = null;
 
-    private String mGameObjectName;
+    private NativeEditBoxInstanceProxy instanceProxy = null;
+
     private EditText mEditBox = null;
 
     private boolean currentMultiline = false;
     private InputType currentInputType = InputType.Standard;
     private TouchScreenKeyboardType currentKeyboardType = TouchScreenKeyboardType.Default;
 
-    @SuppressWarnings("unused")
-    public void Init(final String gameObjectName, final boolean multiline)
+    public NativeEditBox(NativeEditBoxInstanceProxy callback)
     {
-        this.mGameObjectName = gameObjectName;
+        instanceProxy = callback;
+    }
+
+    @SuppressWarnings("unused")
+    public void Init(final boolean multiline)
+    {
         this.currentMultiline = multiline;
 
         final Activity activity = UnityPlayer.currentActivity;
@@ -149,13 +148,13 @@ public class NativeEditBox {
 
                             eb.showKeyboard(false);
 
-                            eb.sendToUnity(METHOD_DID_END, txt);
-                            eb.sendToUnity(METHOD_TAP_OUTSIDE, "");
+                            instanceProxy.OnJavaDidEnd(txt);
+                            instanceProxy.OnJavaTapOutside();
                         }else
                         {
                             sLayout.setClickable(true);
 
-                            eb.sendToUnity(METHOD_GOT_FOCUS, "");
+                            instanceProxy.OnJavaGotFocus();
                         }
                     }
                 });
@@ -173,7 +172,7 @@ public class NativeEditBox {
 
                     @Override
                     public void afterTextChanged(Editable editable) {
-                        sendToUnity(METHOD_TEXT_CHANGED, editable.toString());
+                        instanceProxy.OnJavaTextChanged(editable.toString());
                     }
                 });
 
@@ -182,7 +181,7 @@ public class NativeEditBox {
                     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                         if(actionId >= EditorInfo.IME_ACTION_NONE && actionId <= EditorInfo.IME_ACTION_PREVIOUS)
                         {
-                            sendToUnity(METHOD_SUBMIT_PRESSED, v.getText().toString());
+                            instanceProxy.OnJavaSubmitPressed(v.getText().toString());
                             return true;
                         }
                         return false;
@@ -222,8 +221,6 @@ public class NativeEditBox {
     @SuppressWarnings("unused")
     public void Destroy()
     {
-        mGameObjectName = null;
-
         final Activity activity = UnityPlayer.currentActivity;
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -621,14 +618,6 @@ public class NativeEditBox {
         }
 
         mEditBox.setInputType(editInputType);
-    }
-
-    private void sendToUnity(String method, String param)
-    {
-        if(mGameObjectName == null)
-            return;
-
-        UnityPlayer.UnitySendMessage(mGameObjectName, method, param);
     }
 
     private String getText()

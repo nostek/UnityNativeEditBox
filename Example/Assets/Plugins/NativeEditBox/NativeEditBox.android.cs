@@ -8,9 +8,63 @@ using TMPro;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
+	class InstanceProxy : AndroidJavaProxy
+	{
+		NativeEditBox owner = null;
+
+		public InstanceProxy(NativeEditBox owner) : base("com.unityextensions.nativeeditbox.NativeEditBoxInstanceProxy")
+		{
+			this.owner = owner;
+		}
+
+		void OnJavaTextChanged(string text)
+		{
+			owner.inputField.text = text;
+
+			owner.OnTextChanged?.Invoke(text);
+		}
+
+		void OnJavaDidEnd(string text)
+		{
+			owner.inputField.text = text;
+
+			if (owner.switchBetweenNativeAndUnity)
+				owner.DestroyNow();
+
+			owner.OnDidEnd?.Invoke();
+		}
+
+		void OnJavaSubmitPressed(string text)
+		{
+			owner.inputField.text = text;
+
+			owner.OnSubmit?.Invoke(text);
+
+			Debug.Log("submit pressed " + text);
+		}
+
+		void OnJavaGotFocus()
+		{
+			owner.OnGotFocus?.Invoke();
+
+			if (owner.inputField.onFocusSelectAll)
+				owner.StartCoroutine(owner.CoSelectAll());
+		}
+
+		void OnJavaTapOutside()
+		{
+			if (owner.switchBetweenNativeAndUnity)
+				owner.DestroyNow();
+
+			owner.OnTapOutside?.Invoke();
+		}
+	}
+
 	const string GlobalListenerName = "NativeEditBoxGlobalListener_1000";
 
 	static GameObject globalListener = null;
+
+	InstanceProxy instanceProxy = null;
 
 	AndroidJavaObject editBox = default;
 
@@ -129,6 +183,8 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (editBox == null)
 			return;
 
+		instanceProxy = null;
+
 		editBox.Call("Destroy");
 		editBox = null;
 
@@ -177,8 +233,10 @@ public partial class NativeEditBox : IPointerClickHandler
 			_ => TextAnchor.TextAnchorUpperLeft
 		};
 
-		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox");
-		editBox.Call("Init", name, inputField.lineType != TMP_InputField.LineType.SingleLine);
+		instanceProxy = new InstanceProxy(this);
+
+		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox", instanceProxy);
+		editBox.Call("Init", inputField.lineType != TMP_InputField.LineType.SingleLine);
 
 		UpdatePlacementNow();
 
@@ -193,14 +251,6 @@ public partial class NativeEditBox : IPointerClickHandler
 		editBox.Call("SetText", inputField.text);
 	}
 
-	void Android_GotFocus(string nothing)
-	{
-		OnGotFocus?.Invoke();
-
-		if (inputField.onFocusSelectAll)
-			StartCoroutine(CoSelectAll());
-	}
-
 	IEnumerator CoSelectAll()
 	{
 		//Looks bad, but works 98% of the times..... Sad.
@@ -212,38 +262,6 @@ public partial class NativeEditBox : IPointerClickHandler
 		yield return null;
 		SelectRange(0, inputField.text.Length);
 		SelectRange(0, inputField.text.Length);
-	}
-
-	void Android_TextChanged(string text)
-	{
-		inputField.text = text;
-
-		OnTextChanged?.Invoke(text);
-	}
-
-	void Android_TapOutside(string nothing)
-	{
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
-
-		OnTapOutside?.Invoke();
-	}
-
-	void Android_DidEnd(string text)
-	{
-		inputField.text = text;
-
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
-
-		OnDidEnd?.Invoke();
-	}
-
-	void Android_SubmitPressed(string text)
-	{
-		inputField.text = text;
-
-		OnSubmit?.Invoke(text);
 	}
 
 	#region Public Methods
