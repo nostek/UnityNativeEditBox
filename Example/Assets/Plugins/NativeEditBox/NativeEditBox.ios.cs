@@ -194,8 +194,8 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		editBox = _CNativeEditBox_Init(GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
 		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
-		_CNativeEditBox_RegisterTextCallbacks(delegateTextChanged, delegateDidEnd, delegateSubmitPressed);
-		_CNativeEditBox_RegisterEmptyCallbacks(delegateGotFocus, delegateTapOutside);
+		_CNativeEditBox_RegisterTextCallbacks(DelegateTextChanged, DelegateDidEnd, DelegateSubmitPressed);
+		_CNativeEditBox_RegisterEmptyCallbacks(DelegateGotFocus, DelegateTapOutside);
 
 		UpdatePlacementNow();
 
@@ -217,7 +217,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	delegate void DelegateEmpty(int instanceId);
 
 	[MonoPInvokeCallback(typeof(DelegateWithText))]
-	static void delegateTextChanged(int instanceId, string text)
+	static void DelegateTextChanged(int instanceId, string text)
 	{
 		var editBox = FindNativeEditBoxBy(instanceId);
 		if (editBox != null)
@@ -229,7 +229,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	}
 
 	[MonoPInvokeCallback(typeof(DelegateWithText))]
-	static void delegateDidEnd(int instanceId, string text)
+	static void DelegateDidEnd(int instanceId, string text)
 	{
 		var editBox = FindNativeEditBoxBy(instanceId);
 		if (editBox != null)
@@ -244,7 +244,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	}
 
 	[MonoPInvokeCallback(typeof(DelegateWithText))]
-	static void delegateSubmitPressed(int instanceId, string text)
+	static void DelegateSubmitPressed(int instanceId, string text)
 	{
 		var editBox = FindNativeEditBoxBy(instanceId);
 		if (editBox != null)
@@ -256,7 +256,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	}
 
 	[MonoPInvokeCallback(typeof(DelegateEmpty))]
-	static void delegateGotFocus(int instanceId)
+	static void DelegateGotFocus(int instanceId)
 	{
 		var editBox = FindNativeEditBoxBy(instanceId);
 		if (editBox != null)
@@ -269,7 +269,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	}
 
 	[MonoPInvokeCallback(typeof(DelegateEmpty))]
-	static void delegateTapOutside(int instanceId)
+	static void DelegateTapOutside(int instanceId)
 	{
 		var editBox = FindNativeEditBoxBy(instanceId);
 		if (editBox != null)
