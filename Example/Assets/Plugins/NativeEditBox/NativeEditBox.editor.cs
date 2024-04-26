@@ -1,4 +1,5 @@
-﻿#if UNITY_EDITOR && !UNITY_IOS && !UNITY_ANDROID
+﻿#if UNITY_EDITOR
+// #if false
 
 using UnityEngine;
 

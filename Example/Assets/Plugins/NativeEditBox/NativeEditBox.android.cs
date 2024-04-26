@@ -1,15 +1,16 @@
-﻿#if UNITY_ANDROID
+﻿#if !UNITY_EDITOR && UNITY_ANDROID
+// #if UNITY_EDITOR
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
+using TMPro;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
-	AndroidJavaObject editBox;
+	AndroidJavaObject editBox = default;
 
-#region Public Methods
+	#region Public Methods
 
 	public static bool IsKeyboardSupported()
 	{
@@ -20,22 +21,17 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		inputField.text = text;
 
-		if (editBox != null)
-			editBox.Call("SetText", text);
+		editBox?.Call("SetText", text);
 	}
 
 	public void SelectRange(int from, int to)
 	{
-		if (editBox != null)
-			editBox.Call("SelectRange", from, to);
+		editBox?.Call("SelectRange", from, to);
 	}
 
 	void SetPlacement(int left, int top, int right, int bottom)
 	{
-		if (editBox == null)
-			return;
-
-		editBox.Call("SetPlacement", left, top, right, bottom);
+		editBox?.Call("SetPlacement", left, top, right, bottom);
 	}
 
 	public void ActivateInputField()
@@ -56,17 +52,11 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	public string text
 	{
-		set
-		{
-			SetText(value);
-		}
-		get
-		{
-			return inputField.text;
-		}
+		set => SetText(value);
+		get => inputField.text;
 	}
 
-#endregion
+	#endregion
 
 	void AwakeNative()
 	{
@@ -122,20 +112,20 @@ public partial class NativeEditBox : IPointerClickHandler
 		ShowText = true;
 	}
 
-#region IPointerClickHandler implementation
+	#region IPointerClickHandler implementation
 
-	public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
+	public void OnPointerClick(PointerEventData eventData)
 	{
 		if (editBox == null)
 			StartCoroutine(CreateNow(true));
 	}
 
-#endregion
+	#endregion
 
 	void SetupInputField()
 	{
-		Text text = inputField.textComponent;
-		Text placeholder = inputField.placeholder as Text;
+		TMP_Text text = inputField.textComponent;
+		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
 		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox");
 		editBox.Call("Init", name, inputField.lineType != TMP_InputField.LineType.SingleLine);
@@ -155,34 +145,30 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	void Android_GotFocus(string nothing)
 	{
-		if (OnGotFocus != null)
-			OnGotFocus();
+		OnGotFocus?.Invoke();
 
 		if (selectAllOnFocus)
-		{
 			StartCoroutine(CoSelectAll());
-		}
 	}
 
 	IEnumerator CoSelectAll()
 	{
 		//Looks bad, but works 98% of the times..... Sad.
-		SelectRange(0, inputField.text.Length);		
-		SelectRange(0, inputField.text.Length);		
+		SelectRange(0, inputField.text.Length);
+		SelectRange(0, inputField.text.Length);
 		yield return 0;
-		SelectRange(0, inputField.text.Length);		
-		SelectRange(0, inputField.text.Length);		
+		SelectRange(0, inputField.text.Length);
+		SelectRange(0, inputField.text.Length);
 		yield return 0;
-		SelectRange(0, inputField.text.Length);		
-		SelectRange(0, inputField.text.Length);		
+		SelectRange(0, inputField.text.Length);
+		SelectRange(0, inputField.text.Length);
 	}
 
 	void Android_TextChanged(string text)
 	{
 		inputField.text = text;
 
-		if (OnTextChanged != null)
-			OnTextChanged(text);
+		OnTextChanged?.Invoke(text);
 	}
 
 	void Android_TapOutside(string nothing)
@@ -190,8 +176,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
 
-		if (OnTapOutside != null)
-			OnTapOutside();
+		OnTapOutside?.Invoke();
 	}
 
 	void Android_DidEnd(string text)
@@ -201,16 +186,14 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
 
-		if (OnDidEnd != null)
-			OnDidEnd();
+		OnDidEnd?.Invoke();
 	}
 
 	void Android_SubmitPressed(string text)
 	{
 		inputField.text = text;
 
-		if (OnSubmit != null)
-			OnSubmit(text);
+		OnSubmit?.Invoke(text);
 	}
 }
 
