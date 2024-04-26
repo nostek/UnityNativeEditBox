@@ -12,7 +12,7 @@ using AOT;
 public partial class NativeEditBox : IPointerClickHandler
 {
 	[DllImport("__Internal")]
-	static extern IntPtr _CNativeEditBox_Init(string gameObject, int instanceId, bool multiline);
+	static extern IntPtr _CNativeEditBox_Init(int instanceId, bool multiline);
 
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_Destroy(IntPtr instance);
@@ -192,7 +192,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		TMP_Text text = inputField.textComponent;
 		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
-		editBox = _CNativeEditBox_Init(name, GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
+		editBox = _CNativeEditBox_Init(GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
 		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
 		_CNativeEditBox_RegisterTextCallbacks(delegateTextChanged, delegateDidEnd, delegateSubmitPressed);
 		_CNativeEditBox_RegisterEmptyCallbacks(delegateGotFocus, delegateTapOutside);

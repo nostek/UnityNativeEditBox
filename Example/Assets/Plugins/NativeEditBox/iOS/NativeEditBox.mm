@@ -43,7 +43,6 @@ enum ReturnButtonType
 // NOTE: we need extern without "C" before unity 4.5
 //extern UIViewController *UnityGetGLViewController();
 extern "C" UIViewController *UnityGetGLViewController();
-extern "C" void UnitySendMessage(const char *, const char *, const char *);
 
 char* MakeStringCopy(const char* string)
 {
@@ -68,7 +67,6 @@ static DelegateEmpty delegateTapOutside = NULL;
 
 @interface CEditBoxPlugin : NSObject<UITextFieldDelegate, UITextViewDelegate>
 {
-    NSString* gameObjectName;
     int instanceId;
     UIView *editView;
     int characterLimit;
@@ -78,11 +76,10 @@ static DelegateEmpty delegateTapOutside = NULL;
 
 @implementation CEditBoxPlugin
 
--(id)initWithGameObjectName:(NSString *)gameObjectName_ instanceId:(int)instanceId_ multiline:(BOOL)multiline
+-(id)initWithInstanceId:(int)instanceId_ multiline:(BOOL)multiline
 {
     self = [super init];
     
-    gameObjectName = gameObjectName_;
     instanceId = instanceId_;
     
     characterLimit = 0;
@@ -148,8 +145,6 @@ static DelegateEmpty delegateTapOutside = NULL;
 
     UIView *view = UnityGetGLViewController().view;
     [view removeGestureRecognizer:tapper];
-    
-    gameObjectName = nil;
 }
 
 // UITextField
@@ -598,11 +593,6 @@ static DelegateEmpty delegateTapOutside = NULL;
     return view.contentScaleFactor;
 }
 
--(void)sendMessageToUnity:(NSString *)methodName parameter:(NSString *)parameter
-{
-    UnitySendMessage([gameObjectName UTF8String], [methodName UTF8String], [parameter UTF8String]);
-}
-
 @end
 
 @interface CEditBoxGlobalPlugin : NSObject
@@ -663,7 +653,7 @@ static DelegateEmpty delegateTapOutside = NULL;
 static CEditBoxGlobalPlugin *globalPlugin = nil;
 
 extern "C" {
-    void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline);
+    void *_CNativeEditBox_Init(int instanceId, BOOL multiline);
     void _CNativeEditBox_Destroy(void *instance);
     void _CNativeEditBox_SetFocus(void *instance, BOOL doFocus);
     void _CNativeEditBox_SetPlacement(void *instance, int left, int top, int right, int bottom);
@@ -683,15 +673,14 @@ extern "C" {
     void _CNativeEditBox_RegisterEmptyCallbacks(DelegateEmpty gotFocus, DelegateEmpty tapOutside);
 }
 
-void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline)
+void *_CNativeEditBox_Init(int instanceId, BOOL multiline)
 {
     if(globalPlugin == nil)
     {
         globalPlugin = [[CEditBoxGlobalPlugin alloc] init];
     }
     
-    id instance = [[CEditBoxPlugin alloc]initWithGameObjectName:[NSString stringWithUTF8String:gameObjectName]
-        instanceId:instanceId multiline:multiline];
+    id instance = [[CEditBoxPlugin alloc]initWithInstanceId:instanceId multiline:multiline];
     
     return (__bridge_retained void *)instance;
 }
