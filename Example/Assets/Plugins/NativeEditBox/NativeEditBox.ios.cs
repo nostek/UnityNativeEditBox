@@ -1,11 +1,12 @@
-﻿#if UNITY_IOS
+﻿#if !UNITY_EDITOR && UNITY_IOS
+// #if UNITY_EDITOR
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
+using TMPro;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
@@ -56,7 +57,7 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	IntPtr editBox;
 
-#region Public Methods
+	#region Public Methods
 
 	public static bool IsKeyboardSupported()
 	{
@@ -79,10 +80,8 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	public void SetPlacement(int left, int top, int right, int bottom)
 	{
-		if (editBox == IntPtr.Zero)
-			return;
-
-		_CNativeEditBox_SetPlacement(editBox, left, top, right, bottom);
+		if (editBox != IntPtr.Zero)
+			_CNativeEditBox_SetPlacement(editBox, left, top, right, bottom);
 	}
 
 	public void ActivateInputField()
@@ -103,17 +102,11 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	public string text
 	{
-		set
-		{
-			SetText(value);
-		}
-		get
-		{
-			return inputField.text;
-		}
+		set => SetText(value);
+		get => inputField.text;
 	}
 
-#endregion
+	#endregion
 
 	void AwakeNative()
 	{
@@ -169,20 +162,20 @@ public partial class NativeEditBox : IPointerClickHandler
 		ShowText = true;
 	}
 
-#region IPointerClickHandler implementation
+	#region IPointerClickHandler implementation
 
-	public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
+	public void OnPointerClick(PointerEventData eventData)
 	{
 		if (editBox == IntPtr.Zero)
 			StartCoroutine(CreateNow(true));
 	}
 
-#endregion
+	#endregion
 
 	void SetupInputField()
 	{
-		Text text = inputField.textComponent;
-		Text placeholder = inputField.placeholder as Text;
+		TMP_Text text = inputField.textComponent;
+		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
 		editBox = _CNativeEditBox_Init(name, inputField.lineType != TMP_InputField.LineType.SingleLine);
 
@@ -200,12 +193,11 @@ public partial class NativeEditBox : IPointerClickHandler
 		_CNativeEditBox_ShowClearButton(editBox, showClearButton);
 	}
 
-#region CALLBACKS
+	#region CALLBACKS
 
 	void iOS_GotFocus(string nothing)
 	{
-		if (OnGotFocus != null)
-			OnGotFocus();
+		OnGotFocus?.Invoke();
 
 		if (selectAllOnFocus)
 			SelectRange(0, inputField.text.Length);
@@ -215,8 +207,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		inputField.text = text;
 
-		if (OnTextChanged != null)
-			OnTextChanged(text);
+		OnTextChanged?.Invoke(text);
 	}
 
 	void iOS_TapOutside(string nothing)
@@ -224,8 +215,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
 
-		if (OnTapOutside != null)
-			OnTapOutside();
+		OnTapOutside?.Invoke();
 	}
 
 	void iOS_DidEnd(string text)
@@ -235,19 +225,17 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (switchBetweenNativeAndUnity)
 			DestroyNow();
 
-		if (OnDidEnd != null)
-			OnDidEnd();
+		OnDidEnd?.Invoke();
 	}
 
 	void iOS_SubmitPressed(string text)
 	{
 		inputField.text = text;
 
-		if (OnSubmit != null)
-			OnSubmit(text);
+		OnSubmit?.Invoke(text);
 	}
 
-#endregion
+	#endregion
 }
 
 #endif
