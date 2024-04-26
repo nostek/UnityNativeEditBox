@@ -135,6 +135,15 @@ public partial class NativeEditBox : MonoBehaviour
 		return new Rect(zero.x, Screen.height - one.y, one.x, Screen.height - zero.y);
 	}
 
+	static NativeEditBox FindNativeEditBoxBy(int instanceId)
+	{
+		var instances = FindObjectsByType<NativeEditBox>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+		foreach (var i in instances)
+			if (i.GetInstanceID() == instanceId)
+				return i;
+		return null;
+	}
+
 	#region Public Methods
 
 	public static Rect KeyboardArea
