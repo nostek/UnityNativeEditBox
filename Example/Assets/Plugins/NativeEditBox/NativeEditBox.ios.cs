@@ -60,7 +60,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	static extern void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
 
 	[DllImport("__Internal")]
-	static extern void _CNativeEditBox_RegisterTextChangedCallback(DelegateWithText callback);
+	static extern void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, DelegateWithText didEnd, DelegateWithText submitPressed);
 
 	IntPtr editBox;
 
@@ -191,7 +191,7 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		editBox = _CNativeEditBox_Init(name, GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
 		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
-		_CNativeEditBox_RegisterTextChangedCallback(delegateTextChanged);
+		_CNativeEditBox_RegisterTextCallbacks(delegateTextChanged, delegateDidEnd, delegateSubmitPressed);
 
 		UpdatePlacementNow();
 
@@ -218,7 +218,35 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (editBox != null)
 		{
 			editBox.inputField.text = text;
+
 			editBox.OnTextChanged?.Invoke(text);
+		}
+	}
+
+	[MonoPInvokeCallback(typeof(DelegateWithText))]
+	static void delegateDidEnd(int instanceId, string text)
+	{
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.inputField.text = text;
+
+			if (editBox.switchBetweenNativeAndUnity)
+				editBox.DestroyNow();
+
+			editBox.OnDidEnd?.Invoke();
+		}
+	}
+
+	[MonoPInvokeCallback(typeof(DelegateWithText))]
+	static void delegateSubmitPressed(int instanceId, string text)
+	{
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.inputField.text = text;
+
+			editBox.OnSubmit?.Invoke(text);
 		}
 	}
 
@@ -236,23 +264,6 @@ public partial class NativeEditBox : IPointerClickHandler
 			DestroyNow();
 
 		OnTapOutside?.Invoke();
-	}
-
-	void iOS_DidEnd(string text)
-	{
-		inputField.text = text;
-
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
-
-		OnDidEnd?.Invoke();
-	}
-
-	void iOS_SubmitPressed(string text)
-	{
-		inputField.text = text;
-
-		OnSubmit?.Invoke(text);
 	}
 
 	#endregion

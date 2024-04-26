@@ -1,6 +1,4 @@
 #define METHOD_TAP_OUTSIDE @"iOS_TapOutside"
-#define METHOD_DID_END @"iOS_DidEnd"
-#define METHOD_SUBMIT_PRESSED @"iOS_SubmitPressed"
 #define METHOD_GOT_FOCUS @"iOS_GotFocus"
 
 enum TextAnchor
@@ -65,6 +63,8 @@ typedef void (*DelegateWithText)(int instanceId, const char* text);
 
 static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 static DelegateWithText delegateTextChanged = NULL;
+static DelegateWithText delegateDidEnd = NULL;
+static DelegateWithText delegateSubmitPressed = NULL;
 
 @interface CEditBoxPlugin : NSObject<UITextFieldDelegate, UITextViewDelegate>
 {
@@ -194,8 +194,9 @@ static DelegateWithText delegateTextChanged = NULL;
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    [self sendMessageToUnity:METHOD_SUBMIT_PRESSED parameter:[textField text]];
-    
+    if(delegateSubmitPressed != NULL)
+        delegateSubmitPressed(instanceId, MakeStringCopy([[textField text] UTF8String]));
+
     return YES;
 }
 
@@ -243,7 +244,8 @@ static DelegateWithText delegateTextChanged = NULL;
 
 -(void)onTextDidEnd:(NSString *)text
 {
-    [self sendMessageToUnity:METHOD_DID_END parameter:text];
+    if(delegateDidEnd != NULL)
+        delegateDidEnd(instanceId, MakeStringCopy([text UTF8String]));
 }
 
 -(void)onTextChange:(NSString *)text
@@ -674,7 +676,7 @@ extern "C" {
     void _CNativeEditBox_ShowClearButton(void *instance, BOOL show);
     void _CNativeEditBox_SelectRange(void *instance, int from, int to);
     void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
-    void _CNativeEditBox_RegisterTextChangedCallback(DelegateWithText callback);
+    void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, DelegateWithText didEnd, DelegateWithText submitPressed);
 }
 
 void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline)
@@ -779,7 +781,9 @@ void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged cal
     delegateKeyboardChanged = callback;
 }
 
-void _CNativeEditBox_RegisterTextChangedCallback(DelegateWithText callback)
+void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, DelegateWithText didEnd, DelegateWithText submitPressed)
 {
-    delegateTextChanged = callback;
+    delegateTextChanged = textChanged;
+    delegateDidEnd = didEnd;
+    delegateSubmitPressed = submitPressed;
 }
