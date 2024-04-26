@@ -62,6 +62,9 @@ public partial class NativeEditBox : IPointerClickHandler
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, DelegateWithText didEnd, DelegateWithText submitPressed);
 
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_RegisterEmptyCallbacks(DelegateEmpty gotFocus, DelegateEmpty tapOutside);
+
 	IntPtr editBox;
 
 	#region Public Methods
@@ -192,6 +195,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		editBox = _CNativeEditBox_Init(name, GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
 		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
 		_CNativeEditBox_RegisterTextCallbacks(delegateTextChanged, delegateDidEnd, delegateSubmitPressed);
+		_CNativeEditBox_RegisterEmptyCallbacks(delegateGotFocus, delegateTapOutside);
 
 		UpdatePlacementNow();
 
@@ -210,6 +214,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	#region CALLBACKS
 
 	delegate void DelegateWithText(int instanceId, string text);
+	delegate void DelegateEmpty(int instanceId);
 
 	[MonoPInvokeCallback(typeof(DelegateWithText))]
 	static void delegateTextChanged(int instanceId, string text)
@@ -250,20 +255,30 @@ public partial class NativeEditBox : IPointerClickHandler
 		}
 	}
 
-	void iOS_GotFocus(string nothing)
+	[MonoPInvokeCallback(typeof(DelegateEmpty))]
+	static void delegateGotFocus(int instanceId)
 	{
-		OnGotFocus?.Invoke();
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.OnGotFocus?.Invoke();
 
-		if (inputField.onFocusSelectAll)
-			SelectRange(0, inputField.text.Length);
+			if (editBox.inputField.onFocusSelectAll)
+				editBox.SelectRange(0, editBox.inputField.text.Length);
+		}
 	}
 
-	void iOS_TapOutside(string nothing)
+	[MonoPInvokeCallback(typeof(DelegateEmpty))]
+	static void delegateTapOutside(int instanceId)
 	{
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			if (editBox.switchBetweenNativeAndUnity)
+				editBox.DestroyNow();
 
-		OnTapOutside?.Invoke();
+			editBox.OnTapOutside?.Invoke();
+		}
 	}
 
 	#endregion

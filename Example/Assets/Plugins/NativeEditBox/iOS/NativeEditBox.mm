@@ -1,6 +1,3 @@
-#define METHOD_TAP_OUTSIDE @"iOS_TapOutside"
-#define METHOD_GOT_FOCUS @"iOS_GotFocus"
-
 enum TextAnchor
 {
     TextAnchorUpperLeft,
@@ -60,11 +57,14 @@ char* MakeStringCopy(const char* string)
 
 typedef void (*DelegateKeyboardChanged)(float x, float y, float width, float height);
 typedef void (*DelegateWithText)(int instanceId, const char* text);
+typedef void (*DelegateEmpty)(int instanceId);
 
 static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 static DelegateWithText delegateTextChanged = NULL;
 static DelegateWithText delegateDidEnd = NULL;
 static DelegateWithText delegateSubmitPressed = NULL;
+static DelegateEmpty delegateGotFocus = NULL;
+static DelegateEmpty delegateTapOutside = NULL;
 
 @interface CEditBoxPlugin : NSObject<UITextFieldDelegate, UITextViewDelegate>
 {
@@ -109,7 +109,8 @@ static DelegateWithText delegateSubmitPressed = NULL;
     UIView *view = UnityGetGLViewController().view;
     [view endEditing:YES];
     
-    [self sendMessageToUnity:METHOD_TAP_OUTSIDE parameter:@""];
+    if(delegateTapOutside != NULL)
+        delegateTapOutside(instanceId);
 }
 
 -(void)initTextField
@@ -158,7 +159,8 @@ static DelegateWithText delegateSubmitPressed = NULL;
     UIView *view = UnityGetGLViewController().view;
     [view addGestureRecognizer:tapper];
     
-    [self sendMessageToUnity:METHOD_GOT_FOCUS parameter:@""];
+    if(delegateGotFocus != NULL)
+        delegateGotFocus(instanceId);
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
@@ -207,7 +209,8 @@ static DelegateWithText delegateSubmitPressed = NULL;
     UIView *view = UnityGetGLViewController().view;
     [view addGestureRecognizer:tapper];
     
-    [self sendMessageToUnity:METHOD_GOT_FOCUS parameter:@""];
+    if(delegateGotFocus != NULL)
+        delegateGotFocus(instanceId);
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
@@ -677,6 +680,7 @@ extern "C" {
     void _CNativeEditBox_SelectRange(void *instance, int from, int to);
     void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
     void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, DelegateWithText didEnd, DelegateWithText submitPressed);
+    void _CNativeEditBox_RegisterEmptyCallbacks(DelegateEmpty gotFocus, DelegateEmpty tapOutside);
 }
 
 void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline)
@@ -786,4 +790,10 @@ void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, Delegat
     delegateTextChanged = textChanged;
     delegateDidEnd = didEnd;
     delegateSubmitPressed = submitPressed;
+}
+
+void _CNativeEditBox_RegisterEmptyCallbacks(DelegateEmpty gotFocus, DelegateEmpty tapOutside)
+{
+    delegateGotFocus = gotFocus;
+    delegateTapOutside = tapOutside;
 }
