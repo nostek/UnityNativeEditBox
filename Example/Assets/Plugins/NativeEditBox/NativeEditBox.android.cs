@@ -74,7 +74,7 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	void CreateGlobalListener()
 	{
-		if(globalListener != null)
+		if (globalListener != null)
 			return;
 
 		globalListener = new GameObject();
