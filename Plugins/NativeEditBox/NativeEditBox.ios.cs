@@ -1,17 +1,18 @@
 ﻿#if !UNITY_EDITOR && UNITY_IOS
-//#if UNITY_IOS
+// #if UNITY_EDITOR || UNITY_IOS
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
+using TMPro;
+using AOT;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
 	[DllImport("__Internal")]
-	static extern IntPtr _CNativeEditBox_Init(string gameObject, bool multiline);
+	static extern IntPtr _CNativeEditBox_Init(int instanceId, bool multiline);
 
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_Destroy(IntPtr instance);
@@ -55,9 +56,18 @@ public partial class NativeEditBox : IPointerClickHandler
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_SelectRange(IntPtr instance, int from, int to);
 
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
+
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_RegisterTextCallbacks(DelegateWithText textChanged, DelegateWithText didEnd, DelegateWithText submitPressed);
+
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_RegisterEmptyCallbacks(DelegateEmpty gotFocus, DelegateEmpty tapOutside);
+
 	IntPtr editBox;
 
-#region Public Methods
+	#region Public Methods
 
 	public static bool IsKeyboardSupported()
 	{
@@ -80,10 +90,8 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	public void SetPlacement(int left, int top, int right, int bottom)
 	{
-		if (editBox == IntPtr.Zero)
-			return;
-
-		_CNativeEditBox_SetPlacement(editBox, left, top, right, bottom);
+		if (editBox != IntPtr.Zero)
+			_CNativeEditBox_SetPlacement(editBox, left, top, right, bottom);
 	}
 
 	public void ActivateInputField()
@@ -104,17 +112,11 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	public string text
 	{
-		set
-		{
-			SetText(value);
-		}
-		get
-		{
-			return inputField.text;
-		}
+		set => SetText(value);
+		get => inputField.text;
 	}
 
-#endregion
+	#endregion
 
 	void AwakeNative()
 	{
@@ -144,6 +146,11 @@ public partial class NativeEditBox : IPointerClickHandler
 		DestroyNow();
 	}
 
+	void UpdateNative()
+	{
+
+	}
+
 	IEnumerator CreateNow(bool doFocus)
 	{
 		yield return new WaitForEndOfFrame();
@@ -170,29 +177,59 @@ public partial class NativeEditBox : IPointerClickHandler
 		ShowText = true;
 	}
 
-#region IPointerClickHandler implementation
+	#region IPointerClickHandler implementation
 
-	public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
+	public void OnPointerClick(PointerEventData eventData)
 	{
 		if (editBox == IntPtr.Zero)
 			StartCoroutine(CreateNow(true));
 	}
 
-#endregion
+	#endregion
 
 	void SetupInputField()
 	{
-		Text text = inputField.textComponent;
-		Text placeholder = inputField.placeholder as Text;
+		TMP_Text text = inputField.textComponent;
+		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
-		editBox = _CNativeEditBox_Init(name, inputField.lineType != InputField.LineType.SingleLine);
+		//ugly, fix enum
+		TextAnchor alignment = text.verticalAlignment switch
+		{
+			VerticalAlignmentOptions.Top => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorUpperLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorUpperCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorUpperRight,
+				_ => TextAnchor.TextAnchorUpperLeft
+			},
+			VerticalAlignmentOptions.Middle => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorMiddleLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorMiddleCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorMiddleRight,
+				_ => TextAnchor.TextAnchorMiddleLeft
+			},
+			VerticalAlignmentOptions.Bottom => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorLowerLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorLowerCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorLowerRight,
+				_ => TextAnchor.TextAnchorLowerLeft
+			},
+			_ => TextAnchor.TextAnchorUpperLeft
+		};
+
+		editBox = _CNativeEditBox_Init(GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
+		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
+		_CNativeEditBox_RegisterTextCallbacks(DelegateTextChanged, DelegateDidEnd, DelegateSubmitPressed);
+		_CNativeEditBox_RegisterEmptyCallbacks(DelegateGotFocus, DelegateTapOutside);
 
 		UpdatePlacementNow();
 
 		_CNativeEditBox_SetFontSize(editBox, Mathf.RoundToInt(text.fontSize * text.pixelsPerUnit));
 		_CNativeEditBox_SetFontColor(editBox, text.color.r, text.color.g, text.color.b, text.color.a);
 		_CNativeEditBox_SetPlaceholder(editBox, placeholder.text, placeholder.color.r, placeholder.color.g, placeholder.color.b, placeholder.color.a);
-		_CNativeEditBox_SetTextAlignment(editBox, (int)text.alignment);
+		_CNativeEditBox_SetTextAlignment(editBox, (int)alignment);
 		_CNativeEditBox_SetInputType(editBox, (int)inputField.inputType);
 		_CNativeEditBox_SetKeyboardType(editBox, (int)inputField.keyboardType);
 		_CNativeEditBox_SetReturnButtonType(editBox, (int)returnButtonType);
@@ -201,54 +238,89 @@ public partial class NativeEditBox : IPointerClickHandler
 		_CNativeEditBox_ShowClearButton(editBox, showClearButton);
 	}
 
-#region CALLBACKS
+	#region CALLBACKS
 
-	void iOS_GotFocus(string nothing)
+	delegate void DelegateWithText(int instanceId, string text);
+	delegate void DelegateEmpty(int instanceId);
+
+	[MonoPInvokeCallback(typeof(DelegateWithText))]
+	static void DelegateTextChanged(int instanceId, string text)
 	{
-		if (OnGotFocus != null)
-			OnGotFocus();
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.inputField.text = text;
 
-		if (selectAllOnFocus)
-			SelectRange(0, inputField.text.Length);
+			editBox.OnTextChanged?.Invoke(text);
+		}
 	}
 
-	void iOS_TextChanged(string text)
+	[MonoPInvokeCallback(typeof(DelegateWithText))]
+	static void DelegateDidEnd(int instanceId, string text)
 	{
-		inputField.text = text;
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.inputField.text = text;
 
-		if (OnTextChanged != null)
-			OnTextChanged(text);
+			if (editBox.switchBetweenNativeAndUnity)
+				editBox.DestroyNow();
+
+			editBox.OnDidEnd?.Invoke();
+		}
 	}
 
-	void iOS_TapOutside(string nothing)
+	[MonoPInvokeCallback(typeof(DelegateWithText))]
+	static void DelegateSubmitPressed(int instanceId, string text)
 	{
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.inputField.text = text;
 
-		if (OnTapOutside != null)
-			OnTapOutside();
+			editBox.OnSubmit?.Invoke(text);
+		}
 	}
 
-	void iOS_DidEnd(string text)
+	[MonoPInvokeCallback(typeof(DelegateEmpty))]
+	static void DelegateGotFocus(int instanceId)
 	{
-		inputField.text = text;
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.OnGotFocus?.Invoke();
 
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
-
-		if (OnDidEnd != null)
-			OnDidEnd();
+			if (editBox.inputField.onFocusSelectAll)
+				editBox.SelectRange(0, editBox.inputField.text.Length);
+		}
 	}
 
-	void iOS_SubmitPressed(string text)
+	[MonoPInvokeCallback(typeof(DelegateEmpty))]
+	static void DelegateTapOutside(int instanceId)
 	{
-		inputField.text = text;
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			if (editBox.switchBetweenNativeAndUnity)
+				editBox.DestroyNow();
 
-		if (OnSubmit != null)
-			OnSubmit(text);
+			editBox.OnTapOutside?.Invoke();
+		}
 	}
 
-#endregion
+	#endregion
+
+	#region GLOBAL CALLBACK
+
+	delegate void DelegateKeyboardChanged(float x, float y, float width, float height);
+
+	[MonoPInvokeCallback(typeof(DelegateKeyboardChanged))]
+	static void delegateKeyboardChanged(float x, float y, float width, float height)
+	{
+		keyboard = new Rect(x, y, width, height);
+	}
+
+	#endregion
 }
 
 #endif

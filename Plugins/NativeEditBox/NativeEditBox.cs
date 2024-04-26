@@ -1,16 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
+using TMPro;
 
-[RequireComponent(typeof(InputField))]
+[RequireComponent(typeof(TMP_InputField))]
 public partial class NativeEditBox : MonoBehaviour
 {
-	const string GlobalListenerName = "NativeEditBoxGlobalListener_1000";
-
-	static GameObject globalListener = null;
-
-	static int uniqueId = 1;
-
 	enum ReturnButtonType
 	{
 		Default,
@@ -21,21 +15,30 @@ public partial class NativeEditBox : MonoBehaviour
 		Done,
 	}
 
-	public delegate void OnTextChangedHandler(string text);
-
-	public delegate void OnSubmitHandler(string text);
+	enum TextAnchor
+	{
+		TextAnchorUpperLeft,
+		TextAnchorUpperCenter,
+		TextAnchorUpperRight,
+		TextAnchorMiddleLeft,
+		TextAnchorMiddleCenter,
+		TextAnchorMiddleRight,
+		TextAnchorLowerLeft,
+		TextAnchorLowerCenter,
+		TextAnchorLowerRight
+	};
 
 	public delegate void OnEventHandler();
+	public delegate void OnTextChangedHandler(string text);
+	public delegate void OnSubmitHandler(string text);
 
 	public event OnTextChangedHandler OnTextChanged;
-
 	public event OnSubmitHandler OnSubmit;
-
 	public event OnEventHandler OnGotFocus;
 	public event OnEventHandler OnDidEnd;
 	public event OnEventHandler OnTapOutside;
 
-	#pragma warning disable 0414
+#pragma warning disable 0414
 
 	[SerializeField]
 	ReturnButtonType returnButtonType = ReturnButtonType.Default;
@@ -45,60 +48,43 @@ public partial class NativeEditBox : MonoBehaviour
 	bool showClearButton = true;
 
 	[SerializeField]
-	bool selectAllOnFocus = false;
-
-	[SerializeField]
 	bool switchBetweenNativeAndUnity = false;
 
-	#pragma warning restore 0414
+#pragma warning restore 0414
 
-	InputField inputField = null;
+	TMP_InputField inputField = null;
+	new Transform transform = null;
 
 	Coroutine coUpdatePlacement = null;
 
+	Vector3 lastPosition = default;
+
 	void Awake()
 	{
-		if (globalListener == null)
-			CreateGlobalListener();
-		
-		this.name += "NEB" + (uniqueId++).ToString();
-
-		inputField = GetComponent<InputField>();
+		transform = GetComponent<Transform>();
+		inputField = GetComponent<TMP_InputField>();
+		inputField.shouldHideMobileInput = true;
+		inputField.shouldHideSoftKeyboard = true;
 	}
 
 	void OnEnable()
 	{
 		AwakeNative();
 
-		StartCoroutine(CoCheckPosition());
+		lastPosition = transform.position;
 	}
 
-	void CreateGlobalListener()
+	void Update()
 	{
-		globalListener = new GameObject();
-		globalListener.name = GlobalListenerName;
-		GameObject.DontDestroyOnLoad(globalListener);
-
-		globalListener.AddComponent<NativeEditBoxGlobalListener>();
-	}
-
-	IEnumerator CoCheckPosition()
-	{
-		Vector3 current = this.transform.position;
-
-		while (this != null)
+		Vector3 pos = transform.position;
+		if (pos != lastPosition)
 		{
-			Vector3 pos = this.transform.position;
+			lastPosition = pos;
 
-			if (pos != current)
-			{
-				current = pos;
-
-				OnRectTransformDimensionsChange();
-			}
-
-			yield return 0;
+			OnRectTransformDimensionsChange();
 		}
+
+		UpdateNative();
 	}
 
 	void OnRectTransformDimensionsChange()
@@ -109,7 +95,7 @@ public partial class NativeEditBox : MonoBehaviour
 		if (coUpdatePlacement != null)
 			return;
 
-		if (this.gameObject.activeInHierarchy)
+		if (gameObject.activeInHierarchy)
 			coUpdatePlacement = StartCoroutine(CoUpdatePlacement());
 	}
 
@@ -138,18 +124,23 @@ public partial class NativeEditBox : MonoBehaviour
 		Vector2 zero = rectTransform.localToWorldMatrix.MultiplyPoint(new Vector3(r.x, r.y));
 		Vector2 one = rectTransform.localToWorldMatrix.MultiplyPoint(new Vector3(r.x + r.width, r.y + r.height));
 
-		return new Rect((int)zero.x, (int)(Screen.height - one.y), (int)one.x, (int)(Screen.height - zero.y));
+		return new Rect(zero.x, Screen.height - one.y, one.x, Screen.height - zero.y);
 	}
 
-	#region Public Methods
-
-	public static Rect KeyboardArea
+	static NativeEditBox FindNativeEditBoxBy(int instanceId)
 	{
-		get
-		{
-			return NativeEditBoxGlobalListener.KeyboardArea;
-		}
+		var instances = FindObjectsByType<NativeEditBox>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+		foreach (var i in instances)
+			if (i.GetInstanceID() == instanceId)
+				return i;
+		return null;
 	}
+
+	#region Keyboard Position and Size
+
+	static Rect keyboard = default(Rect);
+
+	public static Rect KeyboardArea => keyboard;
 
 	#endregion
 }

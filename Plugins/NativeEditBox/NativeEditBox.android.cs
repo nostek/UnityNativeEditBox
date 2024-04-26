@@ -1,16 +1,83 @@
 ﻿#if !UNITY_EDITOR && UNITY_ANDROID
-//#if UNITY_ANDROID
+// #if UNITY_EDITOR || UNITY_ANDROID
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
+using TMPro;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
-	AndroidJavaObject editBox;
+	class GlobalProxy : AndroidJavaProxy
+	{
+		public GlobalProxy() : base("com.unityextensions.nativeeditbox.NativeEditBoxGlobalProxy")
+		{
+		}
 
-#region Public Methods
+		void OnJavaKeyboardChange(float x, float y, float width, float height)
+		{
+			NativeEditBox.keyboard = new Rect(x, y, width, height);
+		}
+	}
+
+	class InstanceProxy : AndroidJavaProxy
+	{
+		NativeEditBox owner = null;
+
+		public InstanceProxy(NativeEditBox owner) : base("com.unityextensions.nativeeditbox.NativeEditBoxInstanceProxy")
+		{
+			this.owner = owner;
+		}
+
+		void OnJavaTextChanged(string text)
+		{
+			owner.inputField.text = text;
+
+			owner.OnTextChanged?.Invoke(text);
+		}
+
+		void OnJavaDidEnd(string text)
+		{
+			owner.inputField.text = text;
+
+			if (owner.switchBetweenNativeAndUnity)
+				owner.DestroyNow();
+
+			owner.OnDidEnd?.Invoke();
+		}
+
+		void OnJavaSubmitPressed(string text)
+		{
+			owner.inputField.text = text;
+
+			owner.OnSubmit?.Invoke(text);
+
+			Debug.Log("submit pressed " + text);
+		}
+
+		void OnJavaGotFocus()
+		{
+			owner.OnGotFocus?.Invoke();
+
+			if (owner.inputField.onFocusSelectAll)
+				owner.StartCoroutine(owner.CoSelectAll());
+		}
+
+		void OnJavaTapOutside()
+		{
+			if (owner.switchBetweenNativeAndUnity)
+				owner.DestroyNow();
+
+			owner.OnTapOutside?.Invoke();
+		}
+	}
+
+	static GlobalProxy globalProxy = null;
+	InstanceProxy instanceProxy = null;
+
+	AndroidJavaObject editBox = default;
+
+	#region Public Methods
 
 	public static bool IsKeyboardSupported()
 	{
@@ -21,22 +88,17 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		inputField.text = text;
 
-		if (editBox != null)
-			editBox.Call("SetText", text);
+		editBox?.Call("SetText", text);
 	}
 
 	public void SelectRange(int from, int to)
 	{
-		if (editBox != null)
-			editBox.Call("SelectRange", from, to);
+		editBox?.Call("SelectRange", from, to);
 	}
 
 	void SetPlacement(int left, int top, int right, int bottom)
 	{
-		if (editBox == null)
-			return;
-
-		editBox.Call("SetPlacement", left, top, right, bottom);
+		editBox?.Call("SetPlacement", left, top, right, bottom);
 	}
 
 	public void ActivateInputField()
@@ -57,17 +119,11 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	public string text
 	{
-		set
-		{
-			SetText(value);
-		}
-		get
-		{
-			return inputField.text;
-		}
+		set => SetText(value);
+		get => inputField.text;
 	}
 
-#endregion
+	#endregion
 
 	void AwakeNative()
 	{
@@ -97,6 +153,11 @@ public partial class NativeEditBox : IPointerClickHandler
 		DestroyNow();
 	}
 
+	void UpdateNative()
+	{
+
+	}
+
 	IEnumerator CreateNow(bool doFocus)
 	{
 		yield return new WaitForEndOfFrame();
@@ -117,36 +178,70 @@ public partial class NativeEditBox : IPointerClickHandler
 		if (editBox == null)
 			return;
 
+		instanceProxy = null;
+
 		editBox.Call("Destroy");
 		editBox = null;
 
 		ShowText = true;
 	}
 
-#region IPointerClickHandler implementation
+	#region IPointerClickHandler implementation
 
-	public void OnPointerClick(UnityEngine.EventSystems.PointerEventData eventData)
+	public void OnPointerClick(PointerEventData eventData)
 	{
 		if (editBox == null)
 			StartCoroutine(CreateNow(true));
 	}
 
-#endregion
+	#endregion
 
 	void SetupInputField()
 	{
-		Text text = inputField.textComponent;
-		Text placeholder = inputField.placeholder as Text;
+		TMP_Text text = inputField.textComponent;
+		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
-		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox");
-		editBox.Call("Init", name, inputField.lineType != InputField.LineType.SingleLine);
+		//ugly, fix enum
+		TextAnchor alignment = text.verticalAlignment switch
+		{
+			VerticalAlignmentOptions.Top => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorUpperLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorUpperCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorUpperRight,
+				_ => TextAnchor.TextAnchorUpperLeft
+			},
+			VerticalAlignmentOptions.Middle => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorMiddleLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorMiddleCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorMiddleRight,
+				_ => TextAnchor.TextAnchorMiddleLeft
+			},
+			VerticalAlignmentOptions.Bottom => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorLowerLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorLowerCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorLowerRight,
+				_ => TextAnchor.TextAnchorLowerLeft
+			},
+			_ => TextAnchor.TextAnchorUpperLeft
+		};
+
+		if (globalProxy == null)
+			globalProxy = new GlobalProxy();
+
+		instanceProxy = new InstanceProxy(this);
+
+		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox", globalProxy, instanceProxy);
+		editBox.Call("Init", inputField.lineType != TMP_InputField.LineType.SingleLine);
 
 		UpdatePlacementNow();
 
 		editBox.Call("SetFontSize", Mathf.RoundToInt(text.fontSize * text.pixelsPerUnit));
 		editBox.Call("SetFontColor", text.color.r, text.color.g, text.color.b, text.color.a);
 		editBox.Call("SetPlaceholder", placeholder.text, placeholder.color.r, placeholder.color.g, placeholder.color.b, placeholder.color.a);
-		editBox.Call("SetTextAlignment", (int)text.alignment);
+		editBox.Call("SetTextAlignment", (int)alignment);
 		editBox.Call("SetInputType", (int)inputField.inputType);
 		editBox.Call("SetKeyboardType", (int)inputField.keyboardType);
 		editBox.Call("SetReturnButtonType", (int)returnButtonType);
@@ -154,64 +249,17 @@ public partial class NativeEditBox : IPointerClickHandler
 		editBox.Call("SetText", inputField.text);
 	}
 
-	void Android_GotFocus(string nothing)
-	{
-		if (OnGotFocus != null)
-			OnGotFocus();
-
-		if (selectAllOnFocus)
-		{
-			StartCoroutine(CoSelectAll());
-		}
-	}
-
 	IEnumerator CoSelectAll()
 	{
 		//Looks bad, but works 98% of the times..... Sad.
-		SelectRange(0, inputField.text.Length);		
-		SelectRange(0, inputField.text.Length);		
-		yield return 0;
-		SelectRange(0, inputField.text.Length);		
-		SelectRange(0, inputField.text.Length);		
-		yield return 0;
-		SelectRange(0, inputField.text.Length);		
-		SelectRange(0, inputField.text.Length);		
-	}
-
-	void Android_TextChanged(string text)
-	{
-		inputField.text = text;
-
-		if (OnTextChanged != null)
-			OnTextChanged(text);
-	}
-
-	void Android_TapOutside(string nothing)
-	{
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
-
-		if (OnTapOutside != null)
-			OnTapOutside();
-	}
-
-	void Android_DidEnd(string text)
-	{
-		inputField.text = text;
-
-		if (switchBetweenNativeAndUnity)
-			DestroyNow();
-
-		if (OnDidEnd != null)
-			OnDidEnd();
-	}
-
-	void Android_SubmitPressed(string text)
-	{
-		inputField.text = text;
-
-		if (OnSubmit != null)
-			OnSubmit(text);
+		SelectRange(0, inputField.text.Length);
+		SelectRange(0, inputField.text.Length);
+		yield return null;
+		SelectRange(0, inputField.text.Length);
+		SelectRange(0, inputField.text.Length);
+		yield return null;
+		SelectRange(0, inputField.text.Length);
+		SelectRange(0, inputField.text.Length);
 	}
 }
 

@@ -1,8 +1,7 @@
 ﻿#if UNITY_EDITOR
-//#if false
+// #if false
 
 using UnityEngine;
-using System;
 
 public partial class NativeEditBox
 {
@@ -41,14 +40,8 @@ public partial class NativeEditBox
 
 	public string text
 	{
-		set
-		{
-			SetText(value);
-		}
-		get
-		{
-			return inputField.text;
-		}
+		set => SetText(value);
+		get => inputField.text;
 	}
 
 	#endregion
@@ -61,30 +54,23 @@ public partial class NativeEditBox
 
 	void OnValueChanged(string text)
 	{
-		if (OnTextChanged != null)
-			OnTextChanged(text);
+		OnTextChanged?.Invoke(text);
 	}
 
 	void OnEndEdit(string text)
 	{
 		if (Input.GetKey(KeyCode.KeypadEnter) || Input.GetKey(KeyCode.Return))
-		{
-			if (OnSubmit != null)
-				OnSubmit(inputField.text);
-		}
+			OnSubmit?.Invoke(inputField.text);
 
-		if (OnDidEnd != null)
-			OnDidEnd();
-
-		if (OnTapOutside != null)
-			OnDidEnd();
+		OnDidEnd?.Invoke();
+		OnTapOutside?.Invoke();
 	}
 
 	#region BAD FOCUS CHECK
 
 	bool isFocused = false;
 
-	void Update()
+	void UpdateNative()
 	{
 		bool focus = inputField.isFocused;
 
@@ -94,10 +80,9 @@ public partial class NativeEditBox
 
 			if (focus)
 			{
-				if (OnGotFocus != null)
-					OnGotFocus();
+				OnGotFocus?.Invoke();
 
-				if (selectAllOnFocus)
+				if (inputField.onFocusSelectAll)
 					SelectRange(0, inputField.text.Length);
 			}
 		}
