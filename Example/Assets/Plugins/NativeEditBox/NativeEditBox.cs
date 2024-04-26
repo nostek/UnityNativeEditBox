@@ -135,4 +135,12 @@ public partial class NativeEditBox : MonoBehaviour
 				return i;
 		return null;
 	}
+
+	#region Keyboard Position and Size
+
+	static Rect keyboard = default(Rect);
+
+	public static Rect KeyboardArea => keyboard;
+
+	#endregion
 }

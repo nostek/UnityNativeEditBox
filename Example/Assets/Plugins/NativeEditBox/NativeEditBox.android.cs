@@ -8,6 +8,18 @@ using TMPro;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
+	class GlobalProxy : AndroidJavaProxy
+	{
+		public GlobalProxy() : base("com.unityextensions.nativeeditbox.NativeEditBoxGlobalProxy")
+		{
+		}
+
+		void OnJavaKeyboardChange(float x, float y, float width, float height)
+		{
+			NativeEditBox.keyboard = new Rect(x, y, width, height);
+		}
+	}
+
 	class InstanceProxy : AndroidJavaProxy
 	{
 		NativeEditBox owner = null;
@@ -60,10 +72,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		}
 	}
 
-	const string GlobalListenerName = "NativeEditBoxGlobalListener_1000";
-
-	static GameObject globalListener = null;
-
+	static GlobalProxy globalProxy = null;
 	InstanceProxy instanceProxy = null;
 
 	AndroidJavaObject editBox = default;
@@ -118,24 +127,10 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	void AwakeNative()
 	{
-		CreateGlobalListener();
-
 		inputField.interactable = false;
 
 		if (!switchBetweenNativeAndUnity)
 			StartCoroutine(CreateNow(false));
-	}
-
-	void CreateGlobalListener()
-	{
-		if (globalListener != null)
-			return;
-
-		globalListener = new GameObject();
-		globalListener.name = GlobalListenerName;
-		GameObject.DontDestroyOnLoad(globalListener);
-
-		globalListener.AddComponent<NativeEditBoxGlobalListener>();
 	}
 
 	bool ShowText
@@ -233,9 +228,12 @@ public partial class NativeEditBox : IPointerClickHandler
 			_ => TextAnchor.TextAnchorUpperLeft
 		};
 
+		if (globalProxy == null)
+			globalProxy = new GlobalProxy();
+
 		instanceProxy = new InstanceProxy(this);
 
-		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox", instanceProxy);
+		editBox = new AndroidJavaObject("com.unityextensions.nativeeditbox.NativeEditBox", globalProxy, instanceProxy);
 		editBox.Call("Init", inputField.lineType != TMP_InputField.LineType.SingleLine);
 
 		UpdatePlacementNow();
@@ -263,12 +261,6 @@ public partial class NativeEditBox : IPointerClickHandler
 		SelectRange(0, inputField.text.Length);
 		SelectRange(0, inputField.text.Length);
 	}
-
-	#region Public Methods
-
-	public static Rect KeyboardArea => NativeEditBoxGlobalListener.KeyboardArea;
-
-	#endregion
 }
 
 #endif

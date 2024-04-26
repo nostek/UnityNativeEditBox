@@ -312,8 +312,6 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	#region GLOBAL CALLBACK
 
-	static Rect keyboard = default(Rect);
-
 	delegate void DelegateKeyboardChanged(float x, float y, float width, float height);
 
 	[MonoPInvokeCallback(typeof(DelegateKeyboardChanged))]
@@ -321,12 +319,6 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		keyboard = new Rect(x, y, width, height);
 	}
-
-	#endregion
-
-	#region Public Methods
-
-	public static Rect KeyboardArea => keyboard;
 
 	#endregion
 }

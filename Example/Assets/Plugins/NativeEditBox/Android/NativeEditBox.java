@@ -25,9 +25,6 @@ import java.util.Locale;
 
 @SuppressWarnings("unused")
 public class NativeEditBox {
-    private final String GLOBAL_LISTENER_NAME = "NativeEditBoxGlobalListener_1000";
-    private final String GLOBAL_METHOD_KEYBOARD_CHANGE = "FromNative_KeyboardChange";
-
     private enum TextAnchor
     {
         UpperLeft,
@@ -74,6 +71,7 @@ public class NativeEditBox {
     private static ViewTreeObserver.OnGlobalLayoutListener sGlobalListener = null;
     private static FrameLayout sLayout = null;
 
+    private static NativeEditBoxGlobalProxy globalProxy = null;
     private NativeEditBoxInstanceProxy instanceProxy = null;
 
     private EditText mEditBox = null;
@@ -82,9 +80,10 @@ public class NativeEditBox {
     private InputType currentInputType = InputType.Standard;
     private TouchScreenKeyboardType currentKeyboardType = TouchScreenKeyboardType.Default;
 
-    public NativeEditBox(NativeEditBoxInstanceProxy callback)
+    public NativeEditBox(NativeEditBoxGlobalProxy global, NativeEditBoxInstanceProxy instance)
     {
-        instanceProxy = callback;
+        globalProxy = global;
+        instanceProxy = instance;
     }
 
     @SuppressWarnings("unused")
@@ -207,10 +206,12 @@ public class NativeEditBox {
                     if(kbHeight > 2)
                     {
                         //Showing
-                        UnityPlayer.UnitySendMessage(GLOBAL_LISTENER_NAME, GLOBAL_METHOD_KEYBOARD_CHANGE, String.format(Locale.ENGLISH, "%d|%d|%d|%d", 0, screen.x, r.bottom, kbHeight));
+                        if(globalProxy != null)
+                            globalProxy.OnJavaKeyboardChange(0, screen.x, r.bottom, kbHeight);
                     }else{
                         //Not showing
-                        UnityPlayer.UnitySendMessage(GLOBAL_LISTENER_NAME, GLOBAL_METHOD_KEYBOARD_CHANGE, "");
+                        if(globalProxy != null)
+                            globalProxy.OnJavaKeyboardChange(0, 0, 0, 0);
                     }
                 }
             };
