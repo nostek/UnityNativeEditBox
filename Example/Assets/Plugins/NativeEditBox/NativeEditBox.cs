@@ -65,8 +65,6 @@ public partial class NativeEditBox : MonoBehaviour
 		inputField = GetComponent<TMP_InputField>();
 		inputField.shouldHideMobileInput = true;
 		inputField.shouldHideSoftKeyboard = true;
-
-		name += "NEB" + GetInstanceID().ToString();
 	}
 
 	void OnEnable()
