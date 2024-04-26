@@ -47,17 +47,19 @@ public partial class NativeEditBox : MonoBehaviour
 #pragma warning restore 0414
 
 	TMP_InputField inputField = null;
+	new Transform transform = null;
 
 	Coroutine coUpdatePlacement = null;
 
 	void Awake()
 	{
+		inputField = GetComponent<TMP_InputField>();
+		transform = GetComponent<Transform>();
+
 		if (globalListener == null)
 			CreateGlobalListener();
 
-		this.name += "NEB" + GetInstanceID().ToString();
-
-		inputField = GetComponent<TMP_InputField>();
+		name += "NEB" + GetInstanceID().ToString();
 	}
 
 	void OnEnable()
@@ -103,7 +105,7 @@ public partial class NativeEditBox : MonoBehaviour
 		if (coUpdatePlacement != null)
 			return;
 
-		if (this.gameObject.activeInHierarchy)
+		if (gameObject.activeInHierarchy)
 			coUpdatePlacement = StartCoroutine(CoUpdatePlacement());
 	}
 
