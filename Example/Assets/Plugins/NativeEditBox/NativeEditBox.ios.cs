@@ -204,7 +204,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		OnGotFocus?.Invoke();
 
-		if (selectAllOnFocus)
+		if (inputField.onFocusSelectAll)
 			SelectRange(0, inputField.text.Length);
 	}
 

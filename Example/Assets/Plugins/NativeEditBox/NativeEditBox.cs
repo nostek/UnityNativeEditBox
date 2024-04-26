@@ -39,9 +39,6 @@ public partial class NativeEditBox : MonoBehaviour
 	bool showClearButton = true;
 
 	[SerializeField]
-	bool selectAllOnFocus = false;
-
-	[SerializeField]
 	bool switchBetweenNativeAndUnity = false;
 
 #pragma warning restore 0414

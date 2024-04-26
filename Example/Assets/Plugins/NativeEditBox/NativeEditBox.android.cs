@@ -152,7 +152,7 @@ public partial class NativeEditBox : IPointerClickHandler
 	{
 		OnGotFocus?.Invoke();
 
-		if (selectAllOnFocus)
+		if (inputField.onFocusSelectAll)
 			StartCoroutine(CoSelectAll());
 	}
 
