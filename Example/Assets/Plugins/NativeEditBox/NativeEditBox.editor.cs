@@ -70,7 +70,7 @@ public partial class NativeEditBox
 
 	bool isFocused = false;
 
-	void Update()
+	void UpdateNative()
 	{
 		bool focus = inputField.isFocused;
 

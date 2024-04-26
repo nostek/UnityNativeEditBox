@@ -136,6 +136,11 @@ public partial class NativeEditBox : IPointerClickHandler
 		DestroyNow();
 	}
 
+	void UpdateNative()
+	{
+
+	}
+
 	IEnumerator CreateNow(bool doFocus)
 	{
 		yield return new WaitForEndOfFrame();

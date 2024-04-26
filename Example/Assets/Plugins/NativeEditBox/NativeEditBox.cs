@@ -51,6 +51,8 @@ public partial class NativeEditBox : MonoBehaviour
 
 	Coroutine coUpdatePlacement = null;
 
+	Vector3 lastPosition = default;
+
 	void Awake()
 	{
 		inputField = GetComponent<TMP_InputField>();
@@ -66,7 +68,7 @@ public partial class NativeEditBox : MonoBehaviour
 	{
 		AwakeNative();
 
-		StartCoroutine(CoCheckPosition());
+		lastPosition = transform.position;
 	}
 
 	void CreateGlobalListener()
@@ -78,23 +80,17 @@ public partial class NativeEditBox : MonoBehaviour
 		globalListener.AddComponent<NativeEditBoxGlobalListener>();
 	}
 
-	IEnumerator CoCheckPosition()
+	void Update()
 	{
-		Vector3 current = this.transform.position;
-
-		while (this != null)
+		Vector3 pos = transform.position;
+		if (pos != lastPosition)
 		{
-			Vector3 pos = this.transform.position;
+			lastPosition = pos;
 
-			if (pos != current)
-			{
-				current = pos;
-
-				OnRectTransformDimensionsChange();
-			}
-
-			yield return null;
+			OnRectTransformDimensionsChange();
 		}
+
+		UpdateNative();
 	}
 
 	void OnRectTransformDimensionsChange()
