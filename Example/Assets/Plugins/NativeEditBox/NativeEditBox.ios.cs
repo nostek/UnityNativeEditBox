@@ -192,6 +192,33 @@ public partial class NativeEditBox : IPointerClickHandler
 		TMP_Text text = inputField.textComponent;
 		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
+		//ugly, fix enum
+		TextAnchor alignment = text.verticalAlignment switch
+		{
+			VerticalAlignmentOptions.Top => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorUpperLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorUpperCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorUpperRight,
+				_ => TextAnchor.TextAnchorUpperLeft
+			},
+			VerticalAlignmentOptions.Middle => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorMiddleLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorMiddleCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorMiddleRight,
+				_ => TextAnchor.TextAnchorMiddleLeft
+			},
+			VerticalAlignmentOptions.Bottom => text.horizontalAlignment switch
+			{
+				HorizontalAlignmentOptions.Left => TextAnchor.TextAnchorLowerLeft,
+				HorizontalAlignmentOptions.Center => TextAnchor.TextAnchorLowerCenter,
+				HorizontalAlignmentOptions.Right => TextAnchor.TextAnchorLowerRight,
+				_ => TextAnchor.TextAnchorLowerLeft
+			},
+			_ => TextAnchor.TextAnchorUpperLeft
+		};
+
 		editBox = _CNativeEditBox_Init(GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
 		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
 		_CNativeEditBox_RegisterTextCallbacks(DelegateTextChanged, DelegateDidEnd, DelegateSubmitPressed);
@@ -202,7 +229,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		_CNativeEditBox_SetFontSize(editBox, Mathf.RoundToInt(text.fontSize * text.pixelsPerUnit));
 		_CNativeEditBox_SetFontColor(editBox, text.color.r, text.color.g, text.color.b, text.color.a);
 		_CNativeEditBox_SetPlaceholder(editBox, placeholder.text, placeholder.color.r, placeholder.color.g, placeholder.color.b, placeholder.color.a);
-		_CNativeEditBox_SetTextAlignment(editBox, (int)text.alignment);
+		_CNativeEditBox_SetTextAlignment(editBox, (int)alignment);
 		_CNativeEditBox_SetInputType(editBox, (int)inputField.inputType);
 		_CNativeEditBox_SetKeyboardType(editBox, (int)inputField.keyboardType);
 		_CNativeEditBox_SetReturnButtonType(editBox, (int)returnButtonType);

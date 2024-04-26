@@ -15,6 +15,19 @@ public partial class NativeEditBox : MonoBehaviour
 		Done,
 	}
 
+	enum TextAnchor
+	{
+		TextAnchorUpperLeft,
+		TextAnchorUpperCenter,
+		TextAnchorUpperRight,
+		TextAnchorMiddleLeft,
+		TextAnchorMiddleCenter,
+		TextAnchorMiddleRight,
+		TextAnchorLowerLeft,
+		TextAnchorLowerCenter,
+		TextAnchorLowerRight
+	};
+
 	public delegate void OnEventHandler();
 	public delegate void OnTextChangedHandler(string text);
 	public delegate void OnSubmitHandler(string text);
