@@ -91,7 +91,7 @@ public partial class NativeEditBox : MonoBehaviour
 				OnRectTransformDimensionsChange();
 			}
 
-			yield return 0;
+			yield return null;
 		}
 	}
 

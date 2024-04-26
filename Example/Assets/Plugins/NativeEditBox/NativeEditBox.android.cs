@@ -156,10 +156,10 @@ public partial class NativeEditBox : IPointerClickHandler
 		//Looks bad, but works 98% of the times..... Sad.
 		SelectRange(0, inputField.text.Length);
 		SelectRange(0, inputField.text.Length);
-		yield return 0;
+		yield return null;
 		SelectRange(0, inputField.text.Length);
 		SelectRange(0, inputField.text.Length);
-		yield return 0;
+		yield return null;
 		SelectRange(0, inputField.text.Length);
 		SelectRange(0, inputField.text.Length);
 	}
