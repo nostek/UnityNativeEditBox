@@ -58,6 +58,7 @@ static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 @interface CEditBoxPlugin : NSObject<UITextFieldDelegate, UITextViewDelegate>
 {
     NSString* gameObjectName;
+    int instanceId;
     UIView *editView;
     int characterLimit;
     UITapGestureRecognizer *tapper;
@@ -66,11 +67,12 @@ static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 
 @implementation CEditBoxPlugin
 
--(id)initWithGameObjectName:(NSString *)gameObjectName_ multiline:(BOOL)multiline
+-(id)initWithGameObjectName:(NSString *)gameObjectName_ instanceId:(int)instanceId_ multiline:(BOOL)multiline
 {
     self = [super init];
     
     gameObjectName = gameObjectName_;
+    instanceId = instanceId_;
     
     characterLimit = 0;
     
@@ -644,7 +646,7 @@ static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 static CEditBoxGlobalPlugin *globalPlugin = nil;
 
 extern "C" {
-    void *_CNativeEditBox_Init(const char *gameObjectName, BOOL multiline);
+    void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline);
     void _CNativeEditBox_Destroy(void *instance);
     void _CNativeEditBox_SetFocus(void *instance, BOOL doFocus);
     void _CNativeEditBox_SetPlacement(void *instance, int left, int top, int right, int bottom);
@@ -662,14 +664,16 @@ extern "C" {
     void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
 }
 
-void *_CNativeEditBox_Init(const char *gameObjectName, BOOL multiline)
+void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline)
 {
     if(globalPlugin == nil)
     {
         globalPlugin = [[CEditBoxGlobalPlugin alloc] init];
     }
     
-    id instance = [[CEditBoxPlugin alloc]initWithGameObjectName:[NSString stringWithUTF8String:gameObjectName] multiline:multiline];
+    id instance = [[CEditBoxPlugin alloc]initWithGameObjectName:[NSString stringWithUTF8String:gameObjectName]
+        instanceId:instanceId multiline:multiline];
+    
     return (__bridge_retained void *)instance;
 }
 
