@@ -8,6 +8,10 @@ using TMPro;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
+	const string GlobalListenerName = "NativeEditBoxGlobalListener_1000";
+
+	static GameObject globalListener = null;
+
 	AndroidJavaObject editBox = default;
 
 	#region Public Methods
@@ -60,10 +64,24 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	void AwakeNative()
 	{
+		CreateGlobalListener();
+
 		inputField.interactable = false;
 
 		if (!switchBetweenNativeAndUnity)
 			StartCoroutine(CreateNow(false));
+	}
+
+	void CreateGlobalListener()
+	{
+		if(globalListener != null)
+			return;
+
+		globalListener = new GameObject();
+		globalListener.name = GlobalListenerName;
+		GameObject.DontDestroyOnLoad(globalListener);
+
+		globalListener.AddComponent<NativeEditBoxGlobalListener>();
 	}
 
 	bool ShowText
@@ -200,6 +218,12 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		OnSubmit?.Invoke(text);
 	}
+
+	#region Public Methods
+
+	public static Rect KeyboardArea => NativeEditBoxGlobalListener.KeyboardArea;
+
+	#endregion
 }
 
 #endif

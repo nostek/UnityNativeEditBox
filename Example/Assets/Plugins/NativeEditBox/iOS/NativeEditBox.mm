@@ -4,9 +4,6 @@
 #define METHOD_SUBMIT_PRESSED @"iOS_SubmitPressed"
 #define METHOD_GOT_FOCUS @"iOS_GotFocus"
 
-#define GLOBAL_LISTENER_NAME @"NativeEditBoxGlobalListener_1000"
-#define GLOBAL_METHOD_KEYBOARD_CHANGE @"FromNative_KeyboardChange"
-
 enum TextAnchor
 {
     TextAnchorUpperLeft,
@@ -53,6 +50,10 @@ enum ReturnButtonType
 //extern UIViewController *UnityGetGLViewController();
 extern "C" UIViewController *UnityGetGLViewController();
 extern "C" void UnitySendMessage(const char *, const char *, const char *);
+
+typedef void (*DelegateKeyboardChanged)(float x, float y, float width, float height);
+
+static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 
 @interface CEditBoxPlugin : NSObject<UITextFieldDelegate, UITextViewDelegate>
 {
@@ -621,14 +622,14 @@ extern "C" void UnitySendMessage(const char *, const char *, const char *);
     keyboard.size.width *= scale;
     keyboard.size.height *= scale;
     
-    NSString *fmt = [NSString stringWithFormat:@"%f|%f|%f|%f", keyboard.origin.x, keyboard.origin.y, keyboard.size.width, keyboard.size.height];
-    
-    UnitySendMessage([GLOBAL_LISTENER_NAME UTF8String], [GLOBAL_METHOD_KEYBOARD_CHANGE UTF8String], [fmt UTF8String]);
+    if( delegateKeyboardChanged != NULL)
+        delegateKeyboardChanged(keyboard.origin.x, keyboard.origin.y, keyboard.size.width, keyboard.size.height);
 }
 
 -(void) keyboardHide:(NSNotification *)notification
 {
-    UnitySendMessage([GLOBAL_LISTENER_NAME UTF8String], [GLOBAL_METHOD_KEYBOARD_CHANGE UTF8String], [@"" UTF8String]);
+    if( delegateKeyboardChanged != NULL)
+        delegateKeyboardChanged(0, 0, 0, 0);
 }
 
 - (CGFloat)getScale:(UIView *)view
@@ -658,6 +659,7 @@ extern "C" {
     void _CNativeEditBox_SetText(void *instance, const char *newText);
     void _CNativeEditBox_ShowClearButton(void *instance, BOOL show);
     void _CNativeEditBox_SelectRange(void *instance, int from, int to);
+    void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
 }
 
 void *_CNativeEditBox_Init(const char *gameObjectName, BOOL multiline)
@@ -753,4 +755,9 @@ void _CNativeEditBox_SelectRange(void *instance, int from, int to)
 {
     CEditBoxPlugin *plugin = (__bridge CEditBoxPlugin *)instance;
     [plugin selectRangeFrom:from rangeTo:to];
+}
+
+void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback)
+{
+    delegateKeyboardChanged = callback;
 }

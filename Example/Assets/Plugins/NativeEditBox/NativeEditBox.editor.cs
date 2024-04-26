@@ -89,6 +89,12 @@ public partial class NativeEditBox
 	}
 
 	#endregion
+
+	#region Public Methods
+
+	public static Rect KeyboardArea => new Rect();
+
+	#endregion
 }
 
 #endif

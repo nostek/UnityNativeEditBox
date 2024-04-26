@@ -5,10 +5,6 @@ using TMPro;
 [RequireComponent(typeof(TMP_InputField))]
 public partial class NativeEditBox : MonoBehaviour
 {
-	const string GlobalListenerName = "NativeEditBoxGlobalListener_1000";
-
-	static GameObject globalListener = null;
-
 	enum ReturnButtonType
 	{
 		Default,
@@ -57,9 +53,6 @@ public partial class NativeEditBox : MonoBehaviour
 		inputField.shouldHideMobileInput = true;
 		inputField.shouldHideSoftKeyboard = true;
 
-		if (globalListener == null)
-			CreateGlobalListener();
-
 		name += "NEB" + GetInstanceID().ToString();
 	}
 
@@ -68,15 +61,6 @@ public partial class NativeEditBox : MonoBehaviour
 		AwakeNative();
 
 		lastPosition = transform.position;
-	}
-
-	void CreateGlobalListener()
-	{
-		globalListener = new GameObject();
-		globalListener.name = GlobalListenerName;
-		GameObject.DontDestroyOnLoad(globalListener);
-
-		globalListener.AddComponent<NativeEditBoxGlobalListener>();
 	}
 
 	void Update()
@@ -140,10 +124,4 @@ public partial class NativeEditBox : MonoBehaviour
 				return i;
 		return null;
 	}
-
-	#region Public Methods
-
-	public static Rect KeyboardArea => NativeEditBoxGlobalListener.KeyboardArea;
-
-	#endregion
 }

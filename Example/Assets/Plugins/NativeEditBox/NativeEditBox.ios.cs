@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using TMPro;
+using AOT;
 
 public partial class NativeEditBox : IPointerClickHandler
 {
@@ -54,6 +55,9 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_SelectRange(IntPtr instance, int from, int to);
+
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
 
 	IntPtr editBox;
 
@@ -183,6 +187,7 @@ public partial class NativeEditBox : IPointerClickHandler
 		TMP_Text placeholder = inputField.placeholder as TMP_Text;
 
 		editBox = _CNativeEditBox_Init(name, inputField.lineType != TMP_InputField.LineType.SingleLine);
+		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
 
 		UpdatePlacementNow();
 
@@ -239,6 +244,26 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		OnSubmit?.Invoke(text);
 	}
+
+	#endregion
+
+	#region GLOBAL CALLBACK
+
+	static Rect keyboard = default(Rect);
+
+	delegate void DelegateKeyboardChanged(float x, float y, float width, float height);
+
+	[MonoPInvokeCallback(typeof(DelegateKeyboardChanged))]
+	static void delegateKeyboardChanged(float x, float y, float width, float height)
+	{
+		keyboard = new Rect(x, y, width, height);
+	}
+
+	#endregion
+
+	#region Public Methods
+
+	public static Rect KeyboardArea => keyboard;
 
 	#endregion
 }
