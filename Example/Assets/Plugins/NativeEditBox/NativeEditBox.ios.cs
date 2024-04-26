@@ -1,5 +1,5 @@
 ﻿#if !UNITY_EDITOR && UNITY_IOS
-// #if UNITY_EDITOR
+// #if UNITY_EDITOR || UNITY_IOS
 
 using UnityEngine;
 using UnityEngine.EventSystems;
