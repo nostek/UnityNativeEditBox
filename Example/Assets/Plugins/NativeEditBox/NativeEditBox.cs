@@ -52,8 +52,10 @@ public partial class NativeEditBox : MonoBehaviour
 
 	void Awake()
 	{
-		inputField = GetComponent<TMP_InputField>();
 		transform = GetComponent<Transform>();
+		inputField = GetComponent<TMP_InputField>();
+		inputField.shouldHideMobileInput = true;
+		inputField.shouldHideSoftKeyboard = true;
 
 		if (globalListener == null)
 			CreateGlobalListener();
