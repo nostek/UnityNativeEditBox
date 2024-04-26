@@ -1,8 +1,10 @@
 # ---------------[ Unity generated ]------------------ #
-Example/Example/Temp/
-Example/Example/Obj/
-Example/Example/UnityGenerated/
-Example/Example/Library/
+Example/Temp/
+Example/Obj/
+Example/UnityGenerated/
+Example/Library/
+Example/Logs/
+Example/UserSettings/
  
 # ----[ Visual Studio / MonoDevelop generated ]------- #
  
