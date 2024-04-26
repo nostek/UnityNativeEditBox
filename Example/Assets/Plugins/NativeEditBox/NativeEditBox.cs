@@ -9,8 +9,6 @@ public partial class NativeEditBox : MonoBehaviour
 
 	static GameObject globalListener = null;
 
-	static int uniqueId = 1;
-
 	enum ReturnButtonType
 	{
 		Default,
@@ -57,7 +55,7 @@ public partial class NativeEditBox : MonoBehaviour
 		if (globalListener == null)
 			CreateGlobalListener();
 
-		this.name += "NEB" + (uniqueId++).ToString();
+		this.name += "NEB" + GetInstanceID().ToString();
 
 		inputField = GetComponent<TMP_InputField>();
 	}
