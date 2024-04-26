@@ -59,6 +59,9 @@ public partial class NativeEditBox : IPointerClickHandler
 	[DllImport("__Internal")]
 	static extern void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
 
+	[DllImport("__Internal")]
+	static extern void _CNativeEditBox_RegisterTextChangedCallback(DelegateWithText callback);
+
 	IntPtr editBox;
 
 	#region Public Methods
@@ -188,6 +191,7 @@ public partial class NativeEditBox : IPointerClickHandler
 
 		editBox = _CNativeEditBox_Init(name, GetInstanceID(), inputField.lineType != TMP_InputField.LineType.SingleLine);
 		_CNativeEditBox_RegisterKeyboardChangedCallback(delegateKeyboardChanged);
+		_CNativeEditBox_RegisterTextChangedCallback(delegateTextChanged);
 
 		UpdatePlacementNow();
 
@@ -205,19 +209,25 @@ public partial class NativeEditBox : IPointerClickHandler
 
 	#region CALLBACKS
 
+	delegate void DelegateWithText(int instanceId, string text);
+
+	[MonoPInvokeCallback(typeof(DelegateWithText))]
+	static void delegateTextChanged(int instanceId, string text)
+	{
+		var editBox = FindNativeEditBoxBy(instanceId);
+		if (editBox != null)
+		{
+			editBox.inputField.text = text;
+			editBox.OnTextChanged?.Invoke(text);
+		}
+	}
+
 	void iOS_GotFocus(string nothing)
 	{
 		OnGotFocus?.Invoke();
 
 		if (inputField.onFocusSelectAll)
 			SelectRange(0, inputField.text.Length);
-	}
-
-	void iOS_TextChanged(string text)
-	{
-		inputField.text = text;
-
-		OnTextChanged?.Invoke(text);
 	}
 
 	void iOS_TapOutside(string nothing)

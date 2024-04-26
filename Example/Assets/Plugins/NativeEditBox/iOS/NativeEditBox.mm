@@ -1,4 +1,3 @@
-#define METHOD_TEXT_CHANGED @"iOS_TextChanged"
 #define METHOD_TAP_OUTSIDE @"iOS_TapOutside"
 #define METHOD_DID_END @"iOS_DidEnd"
 #define METHOD_SUBMIT_PRESSED @"iOS_SubmitPressed"
@@ -51,9 +50,21 @@ enum ReturnButtonType
 extern "C" UIViewController *UnityGetGLViewController();
 extern "C" void UnitySendMessage(const char *, const char *, const char *);
 
+char* MakeStringCopy(const char* string)
+{
+    if(string == NULL)
+        return NULL;
+
+    char* res = (char*)malloc(strlen(string) +1);
+    strcpy(res, string);
+    return res;
+}
+
 typedef void (*DelegateKeyboardChanged)(float x, float y, float width, float height);
+typedef void (*DelegateWithText)(int instanceId, const char* text);
 
 static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
+static DelegateWithText delegateTextChanged = NULL;
 
 @interface CEditBoxPlugin : NSObject<UITextFieldDelegate, UITextViewDelegate>
 {
@@ -237,7 +248,8 @@ static DelegateKeyboardChanged delegateKeyboardChanged = NULL;
 
 -(void)onTextChange:(NSString *)text
 {
-    [self sendMessageToUnity:METHOD_TEXT_CHANGED parameter:text];
+    if(delegateTextChanged != NULL)
+        delegateTextChanged(instanceId, MakeStringCopy([text UTF8String]));
 }
 
 -(void)setFocus:(BOOL)doFocus
@@ -662,6 +674,7 @@ extern "C" {
     void _CNativeEditBox_ShowClearButton(void *instance, BOOL show);
     void _CNativeEditBox_SelectRange(void *instance, int from, int to);
     void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback);
+    void _CNativeEditBox_RegisterTextChangedCallback(DelegateWithText callback);
 }
 
 void *_CNativeEditBox_Init(const char *gameObjectName, int instanceId, BOOL multiline)
@@ -764,4 +777,9 @@ void _CNativeEditBox_SelectRange(void *instance, int from, int to)
 void _CNativeEditBox_RegisterKeyboardChangedCallback(DelegateKeyboardChanged callback)
 {
     delegateKeyboardChanged = callback;
+}
+
+void _CNativeEditBox_RegisterTextChangedCallback(DelegateWithText callback)
+{
+    delegateTextChanged = callback;
 }
