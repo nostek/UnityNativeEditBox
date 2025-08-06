@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.unity3d.player.R;
 import com.unity3d.player.UnityPlayer;
 
 import java.util.Locale;
@@ -100,6 +101,12 @@ public class NativeEditBox {
             public void run() {
                 if(mEditBox != null)
                     return;
+            
+                // Disable defaulthighlight overlay, see https://github.com/Genymobile/scrcpy/issues/5089
+                View view = activityRootView.findViewById(R.id.unitySurfaceView);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    view.setDefaultFocusHighlightEnabled(false);
+                }
 
                 mEditBox = new EditText(activity);
 
